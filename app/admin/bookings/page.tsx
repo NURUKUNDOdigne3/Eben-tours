@@ -5,6 +5,7 @@ import AdminDataTable from "@/app/components/admin/table/AdminDataTable";
 import AdminDrawer from "@/app/components/admin/AdminDrawer";
 import AdminConfirmModal from "@/app/components/admin/AdminConfirmModal";
 import { useCallback, useMemo, useState } from "react";
+import { useAdminOps } from "@/app/components/admin/AdminOpsProvider";
 
 type BookingStatus = "pending" | "confirmed" | "cancelled";
 
@@ -86,6 +87,7 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 }
 
 export default function AdminBookingsPage() {
+  const { pushActivity, pushAudit, pushNotification } = useAdminOps();
   const [rows, setRows] = useState<BookingRow[]>(bookings);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -135,8 +137,38 @@ export default function AdminBookingsPage() {
       setRows((prev) =>
         prev.map((r) => (r.id === selected.id ? { ...r, status } : r))
       );
+
+      const time = "Just now";
+      const label = status[0].toUpperCase() + status.slice(1);
+      pushAudit({
+        entity: "booking",
+        action: "status_change",
+        actor: "Fab",
+        summary: `${selected.id} marked as ${label}`,
+        time,
+        href: "/admin/bookings",
+      });
+      pushActivity({
+        title: "Booking status updated",
+        meta: `${selected.id} • ${selected.packageName} • ${label}`,
+        time,
+        tone:
+          status === "cancelled"
+            ? "red"
+            : status === "pending"
+            ? "amber"
+            : "emerald",
+        href: "/admin/bookings",
+      });
+      pushNotification({
+        type: "booking",
+        title: "Booking status updated",
+        body: `${selected.customer} • ${selected.packageName} → ${label}`,
+        time,
+        href: "/admin/bookings",
+      });
     },
-    [selected]
+    [pushActivity, pushAudit, pushNotification, selected]
   );
 
   const startEdit = useCallback(() => {
@@ -166,7 +198,24 @@ export default function AdminBookingsPage() {
       )
     );
     setIsEditing(false);
-  }, [draftDate, draftTravellers, selected]);
+
+    const time = "Just now";
+    pushAudit({
+      entity: "booking",
+      action: "update",
+      actor: "Fab",
+      summary: `${selected.id} details updated (date/travellers)`,
+      time,
+      href: "/admin/bookings",
+    });
+    pushActivity({
+      title: "Booking details updated",
+      meta: `${selected.id} • ${draftDate} • ${travellersNum} travellers`,
+      time,
+      tone: "blue",
+      href: "/admin/bookings",
+    });
+  }, [draftDate, draftTravellers, pushActivity, pushAudit, selected]);
 
   const setStatusBulk = useCallback((ids: string[], status: BookingStatus) => {
     if (ids.length === 0) return;
@@ -282,10 +331,29 @@ export default function AdminBookingsPage() {
         onClose={closeBulkConfirm}
         onConfirm={() => {
           if (!confirmAction) return;
-          setStatusBulk(
-            confirmIds,
-            confirmAction === "cancel" ? "cancelled" : "confirmed"
-          );
+
+          const newStatus =
+            confirmAction === "cancel" ? "cancelled" : "confirmed";
+          setStatusBulk(confirmIds, newStatus);
+
+          const time = "Just now";
+          const label = newStatus[0].toUpperCase() + newStatus.slice(1);
+          pushAudit({
+            entity: "booking",
+            action: "status_change",
+            actor: "Fab",
+            summary: `Bulk update: ${confirmIds.length} booking(s) marked as ${label}`,
+            time,
+            href: "/admin/bookings",
+          });
+          pushActivity({
+            title: "Bulk booking update",
+            meta: `${confirmIds.length} booking(s) → ${label}`,
+            time,
+            tone: newStatus === "cancelled" ? "red" : "emerald",
+            href: "/admin/bookings",
+          });
+
           closeBulkConfirm();
         }}
         footerNote="This is currently a mock action (UI state only)."

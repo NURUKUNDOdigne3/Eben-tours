@@ -1,6 +1,8 @@
 import AdminKpiCard from "../components/admin/AdminKpiCard";
 import BookingTrendsChart from "../components/admin/charts/BookingTrendsChart";
 import RevenueBreakdownChart from "../components/admin/charts/RevenueBreakdownChart";
+import AdminActivityFeed from "../components/admin/AdminActivityFeed";
+import AdminAuditLog from "../components/admin/AdminAuditLog";
 
 export default function AdminDashboardPage() {
   return (
@@ -67,7 +69,10 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div>
+        <div className="space-y-4">
+          <AdminActivityFeed />
+          <AdminAuditLog />
+
           <div className="rounded-2xl border border-emerald-900/10 bg-white p-4 shadow-sm sm:p-5">
             <div className="mb-4">
               <div className="text-sm font-extrabold text-[var(--color-secondary)]">
