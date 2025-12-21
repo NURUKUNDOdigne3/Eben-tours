@@ -9,6 +9,7 @@ const navItems: Array<{
     | "packages"
     | "hero"
     | "blogs"
+    | "emails"
     | "customers"
     | "revenue"
     | "audit"
@@ -19,6 +20,7 @@ const navItems: Array<{
   { label: "Packages", href: "/admin/packages", icon: "packages" },
   { label: "Hero Media", href: "/admin/hero-media", icon: "hero" },
   { label: "Blogs", href: "/admin/blogs", icon: "blogs" },
+  { label: "Emails", href: "/admin/emails", icon: "emails" },
   { label: "Customers", href: "/admin/customers", icon: "customers" },
   { label: "Revenue", href: "/admin/revenue", icon: "revenue" },
   { label: "Audit", href: "/admin/audit", icon: "audit" },
@@ -38,6 +40,21 @@ function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
       >
         <path
           d="M4 13h7V4H4v9Zm9 7h7V11h-7v9ZM4 20h7v-5H4v5Zm9-11h7V4h-7v5Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+
+  if (name === "emails")
+    return (
+      <svg
+        className={common}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"
           fill="currentColor"
         />
       </svg>
