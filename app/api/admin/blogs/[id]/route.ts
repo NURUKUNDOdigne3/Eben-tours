@@ -9,6 +9,7 @@ type BlogRow = {
   title: string;
   category: string;
   author: string;
+  imageUrl?: string | null;
   status: PostStatus;
   readTime: string;
   content: any;
@@ -30,6 +31,8 @@ export async function PATCH(
   if (typeof body.title === "string") data.title = body.title.trim();
   if (typeof body.category === "string") data.category = body.category.trim();
   if (typeof body.author === "string") data.authorName = body.author.trim();
+  if (typeof body.imageUrl === "string")
+    data.imageUrl = body.imageUrl.trim() || null;
   if (typeof body.readTime === "string") data.readTime = body.readTime.trim();
   if (body.status === "draft" || body.status === "published")
     data.status = body.status;
@@ -46,6 +49,7 @@ export async function PATCH(
       title: updated.title,
       category: updated.category,
       author: updated.authorName,
+      imageUrl: (updated as any).imageUrl,
       status: updated.status,
       readTime: updated.readTime,
       updatedAt: updated.updatedAt.toISOString().slice(0, 10),

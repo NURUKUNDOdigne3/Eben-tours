@@ -4,7 +4,7 @@ import type { BlogPost } from "../blogs/blogsData";
 export default function SingleBlog({ post }: { post: BlogPost }) {
   return (
     <article className="card">
-      <img src={post.image} alt={post.title} loading="lazy" />
+      <img src={post.image || "/gorila.jpg"} alt={post.title} loading="lazy" />
       <div>
         <h3>{post.title}</h3>
         <p

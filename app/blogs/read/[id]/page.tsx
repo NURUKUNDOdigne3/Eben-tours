@@ -1,7 +1,7 @@
 import SectionHeader from "@/app/components/SectionHeader";
 import BlogReaderEnhancements from "@/app/components/BlogReaderEnhancements";
-import { blogPosts } from "../../blogsData";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 
 export default async function BlogReadPage({
   params,
@@ -9,11 +9,28 @@ export default async function BlogReadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const post = blogPosts.find((p) => p.id === id);
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
+  const proto = h.get("x-forwarded-proto") ?? "http";
+  const origin = host ? `${proto}://${host}` : "";
 
-  if (!post) {
-    notFound();
-  }
+  const res = await fetch(`${origin}/api/blogs/${id}`, {
+    cache: "no-store",
+  });
+  const data = await res.json().catch(() => null);
+  const post = data?.post as
+    | {
+        id: string;
+        title: string;
+        category: string;
+        readTime: string;
+        imageUrl?: string | null;
+        excerpt?: string;
+        content: string[];
+      }
+    | undefined;
+
+  if (!res.ok || !post) notFound();
 
   return (
     <>
@@ -26,7 +43,7 @@ export default async function BlogReadPage({
       <SectionHeader
         title={post.title}
         note={post.category}
-        description={post.excerpt}
+        description={post.excerpt || ""}
       />
 
       <div className="container" style={{ paddingBottom: "60px" }}>
@@ -43,7 +60,7 @@ export default async function BlogReadPage({
         >
           <div style={{ position: "relative" }}>
             <img
-              src={post.image}
+              src={post.imageUrl || "/gorila.jpg"}
               alt={post.title}
               style={{ width: "100%", height: "420px", objectFit: "cover" }}
             />

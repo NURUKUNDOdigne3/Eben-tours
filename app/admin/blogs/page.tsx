@@ -18,6 +18,7 @@ type BlogRow = {
   title: string;
   category: string;
   author: string;
+  imageUrl?: string | null;
   status: PostStatus;
   readTime: string;
   updatedAt: string;
@@ -44,6 +45,7 @@ export default function AdminBlogsPage() {
   const [rows, setRows] = useState<BlogRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -78,6 +80,7 @@ export default function AdminBlogsPage() {
   const [draftCategory, setDraftCategory] = useState("Travel Guides");
   const [draftStatus, setDraftStatus] = useState<PostStatus>("draft");
   const [draftReadTime, setDraftReadTime] = useState("6 min");
+  const [draftImageUrl, setDraftImageUrl] = useState<string>("");
   const [draftContent, setDraftContent] = useState<QuillDelta>({
     ops: [{ insert: "\n" }],
   });
@@ -88,6 +91,7 @@ export default function AdminBlogsPage() {
     setDraftCategory("Travel Guides");
     setDraftStatus("draft");
     setDraftReadTime("6 min");
+    setDraftImageUrl("");
     setDraftContent({ ops: [{ insert: "\n" }] });
     setDrawerOpen(true);
   }, []);
@@ -101,10 +105,64 @@ export default function AdminBlogsPage() {
       setDraftCategory(post.category);
       setDraftStatus(post.status);
       setDraftReadTime(post.readTime);
+      setDraftImageUrl(typeof post.imageUrl === "string" ? post.imageUrl : "");
       setDraftContent(post.content);
       setDrawerOpen(true);
     },
     [rows]
+  );
+
+  const uploadImage = useCallback(
+    async (file: File) => {
+      if (uploadingImage) return;
+      setUploadingImage(true);
+      try {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const sigRes = await fetch(
+          `/api/admin/cloudinary-signature?timestamp=${timestamp}`
+        );
+        const sigData = await sigRes.json();
+        if (!sigRes.ok)
+          throw new Error(sigData?.error || "Failed to sign upload");
+
+        const cloudName = String(sigData.cloudName || "");
+        const apiKey = String(sigData.apiKey || "");
+        const signature = String(sigData.signature || "");
+        const folder = String(sigData.folder || "");
+
+        if (!cloudName || !apiKey || !signature)
+          throw new Error("Cloudinary is not configured");
+
+        const form = new FormData();
+        form.append("file", file);
+        form.append("api_key", apiKey);
+        form.append("timestamp", String(timestamp));
+        form.append("signature", signature);
+        if (folder) form.append("folder", folder);
+
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: form,
+          }
+        );
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok)
+          throw new Error(uploadData?.error?.message || "Upload failed");
+
+        const secureUrl = String(uploadData?.secure_url || "");
+        if (!secureUrl) throw new Error("Upload failed");
+
+        setDraftImageUrl(secureUrl);
+      } catch (err: any) {
+        setToast(err?.message || "Failed to upload image");
+        window.setTimeout(() => setToast(null), 1800);
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [uploadingImage]
   );
 
   const closeDrawer = useCallback(() => {
@@ -125,6 +183,7 @@ export default function AdminBlogsPage() {
           title: draftTitle.trim(),
           category: draftCategory,
           author: "Admin",
+          imageUrl: draftImageUrl.trim() || null,
           status: draftStatus,
           readTime: draftReadTime,
           content: draftContent,
@@ -134,6 +193,7 @@ export default function AdminBlogsPage() {
           title: draftTitle.trim(),
           category: draftCategory,
           author: "Admin",
+          imageUrl: draftImageUrl.trim() || null,
           status: draftStatus,
           readTime: draftReadTime,
           content: draftContent,
@@ -179,6 +239,7 @@ export default function AdminBlogsPage() {
   }, [
     draftCategory,
     draftContent,
+    draftImageUrl,
     draftReadTime,
     draftStatus,
     draftTitle,
@@ -427,6 +488,44 @@ export default function AdminBlogsPage() {
                   className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
                 />
               </label>
+
+              <div className="grid grid-cols-1! gap-2!">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-extrabold text-[var(--muted)]">
+                    Cover image
+                  </span>
+                  <label className="cursor-pointer rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50">
+                    {uploadingImage ? "Uploading..." : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingImage}
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        void uploadImage(f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <input
+                  value={draftImageUrl}
+                  onChange={(e) => setDraftImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
+                />
+                {draftImageUrl ? (
+                  <div className="overflow-hidden rounded-xl border border-emerald-900/10 bg-[#f6f8f7]">
+                    <img
+                      src={draftImageUrl}
+                      alt="Blog"
+                      className="h-40 w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2!">
                 <label className="grid-cols-1! gap-1!">

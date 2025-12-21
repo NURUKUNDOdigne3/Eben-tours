@@ -134,6 +134,7 @@ model BlogPost {
   title      String
   category   String
   authorName String
+  imageUrl   String?
   status     BlogStatus @default(draft)
   readTime   String
   content    Json

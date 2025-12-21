@@ -9,6 +9,7 @@ type BlogRow = {
   title: string;
   category: string;
   author: string;
+  imageUrl?: string | null;
   status: PostStatus;
   readTime: string;
   updatedAt: string;
@@ -21,6 +22,7 @@ function toRow(p: any): BlogRow {
     title: p.title,
     category: p.category,
     author: p.authorName,
+    imageUrl: p.imageUrl,
     status: p.status,
     readTime: p.readTime,
     updatedAt: p.updatedAt.toISOString().slice(0, 10),
@@ -57,6 +59,8 @@ export async function POST(req: Request) {
   const readTime = String(body.readTime ?? "6 min").trim() || "6 min";
   const status = (body.status ?? "draft") as PostStatus;
   const content = body.content ?? { ops: [{ insert: "\n" }] };
+  const imageUrl =
+    typeof body.imageUrl === "string" ? body.imageUrl.trim() : null;
 
   if (!title)
     return NextResponse.json({ error: "title required" }, { status: 400 });
@@ -72,6 +76,7 @@ export async function POST(req: Request) {
       title,
       category,
       authorName: author,
+      imageUrl,
       status,
       readTime,
       content,
