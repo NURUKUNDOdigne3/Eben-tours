@@ -1,3 +1,6 @@
+import { ArrowRight, InfoIcon } from "lucide-react";
+import Link from "next/link";
+
 interface IDestinationCard {
   bg: string;
   flag: string;
@@ -126,17 +129,22 @@ export default function DestinationCard({
             borderBottom: "1px solid rgba(30,86,49,0.1)",
           }}
         >
-          <span style={{ fontSize: "13px", color: "var(--muted)" }}>
-            <i
-              className="fas fa-info-circle"
-              style={{ color: "var(--color-primary)", marginRight: "6px" }}
-            ></i>
+          <span
+            style={{
+              fontSize: "13px",
+              color: "var(--muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <InfoIcon size={15} style={{ color: "var(--color-primary)" }} />
             Peak Season: {peakSeason}
           </span>
         </div>
 
-        <a
-          href={href}
+        <Link
+          href={`/packages?filter=${title.toLowerCase()}`}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -148,8 +156,8 @@ export default function DestinationCard({
             fontSize: "14px",
           }}
         >
-          Explore <i className="fas fa-arrow-right"></i>
-        </a>
+          Explore <ArrowRight size={18} className="relative top-0.5" />
+        </Link>
       </div>
     </div>
   );

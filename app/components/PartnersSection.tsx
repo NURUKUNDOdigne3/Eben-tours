@@ -7,7 +7,7 @@ export default function PartnersSection() {
         </div>
         <div className="carousel-item">
           <img
-            src="/visit-rwanda-seeklogo.png"
+            src="/visit-rwanda-seeklogo.webp"
             alt="Visit Rwanda Partner"
             loading="lazy"
           />
@@ -17,18 +17,18 @@ export default function PartnersSection() {
         </div>
         <div className="carousel-item">
           <img
-            src="/bfc9ff252b470cbc671e871d1efe3689.png"
+            src="/bfc9ff252b470cbc671e871d1efe3689.webp"
             alt="Partner logo"
             loading="lazy"
           />
         </div>
 
         <div className="carousel-item">
-          <img src="/Logo-011.png" alt="RDB Partner logo" loading="lazy" />
+          <img src="/Logo-011.webp" alt="RDB Partner logo" loading="lazy" />
         </div>
         <div className="carousel-item">
           <img
-            src="/kisspng-logo-brand-product-design-font-morvick-travels-amp-tours-ltd-nigeria-amp-apos-5b75f057225813.0890403615344558951407.png"
+            src="/kisspng-logo-brand-product-design-font-morvick-travels-amp-tours-ltd-nigeria-amp-apos-5b75f057225813.0890403615344558951407.webp"
             alt="RDB Partner logo"
             loading="lazy"
           />

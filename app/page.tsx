@@ -34,6 +34,12 @@ function excerptFromParagraphs(paragraphs: string[]): string {
 }
 
 export default async function Home() {
+  const packages = await prisma.package.findMany({
+    where: { status: "active" },
+    orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+    take: 3,
+  });
+
   const posts = await prisma.blogPost.findMany({
     where: { status: "published" },
     orderBy: { updatedAt: "desc" },
@@ -112,9 +118,17 @@ export default async function Home() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <SinglePackage />
-          <SinglePackage />
-          <SinglePackage />
+          {packages.map((p) => (
+            <SinglePackage
+              key={p.publicId}
+              id={p.publicId}
+              title={p.title}
+              description={p.description}
+              price={p.price}
+              imageUrl={p.imageUrl}
+              featured={p.featured}
+            />
+          ))}
         </div>
       </main>
 

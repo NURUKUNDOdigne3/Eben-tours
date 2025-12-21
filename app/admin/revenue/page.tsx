@@ -145,7 +145,7 @@ export default function AdminRevenuePage() {
           sheetName: "Revenue",
           title: "Revenue Report",
           companyName: "Eben Tours",
-          logoUrl: "/Logo-011.png",
+          logoUrl: "/Logo-011.webp",
           meta: [
             { label: "Generated", value: stamp },
             { label: "Period", value: period },

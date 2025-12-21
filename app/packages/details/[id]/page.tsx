@@ -1,6 +1,23 @@
 "use client";
 
 import SectionHeader from "@/app/components/SectionHeader";
+import {
+  Calendar,
+  CalendarCheck,
+  Check,
+  CheckCircle,
+  Info,
+  InfoIcon,
+  Mail,
+  Map,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Users2,
+  X,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { PhoneInput } from "react-international-phone";
@@ -150,12 +167,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-calendar"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <Calendar size={18} style={{ marginRight: "6px" }} />
                   Duration
                 </div>
                 <div
@@ -186,12 +202,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-map-marker-alt"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <MapPin size={18} style={{ marginRight: "6px" }} />
                   Destination
                 </div>
                 <div
@@ -222,12 +237,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-people-group"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <Users2 size={18} style={{ marginRight: "6px" }} />
                   Min Group
                 </div>
                 <div
@@ -271,9 +285,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i className="fas fa-map" style={{ marginRight: "8px" }} />
+                <Map size={22} style={{ marginRight: "8px" }} />
                 Itinerary
               </button>
 
@@ -297,12 +313,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-check-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <CheckCircle size={22} style={{ marginRight: "8px" }} />
                 Inclusions
               </button>
 
@@ -326,12 +341,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-times-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <XCircle size={22} style={{ marginRight: "8px" }} />
                 Exclusions
               </button>
 
@@ -355,12 +369,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-info-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <Info size={22} style={{ marginRight: "8px" }} />
                 Info
               </button>
             </div>
@@ -473,8 +486,7 @@ export default function PackageDetails() {
                           borderLeft: "4px solid var(--color-primary)",
                         }}
                       >
-                        <i
-                          className="fas fa-check"
+                        <Check
                           style={{
                             color: "var(--color-primary)",
                             fontSize: "20px",
@@ -536,8 +548,7 @@ export default function PackageDetails() {
                           borderLeft: "4px solid #d32f2f",
                         }}
                       >
-                        <i
-                          className="fas fa-times"
+                        <X
                           style={{
                             color: "#d32f2f",
                             fontSize: "20px",
@@ -594,12 +605,11 @@ export default function PackageDetails() {
                             color: "var(--color-primary)",
                             fontWeight: 700,
                             fontSize: "16px",
+                            display: "flex",
+                            alignItems: "center",
                           }}
                         >
-                          <i
-                            className="fas fa-info-circle"
-                            style={{ marginRight: "8px" }}
-                          />
+                          <InfoIcon size={20} style={{ marginRight: "8px" }} />
                           Info
                         </h4>
                         <p
@@ -887,16 +897,17 @@ export default function PackageDetails() {
                     transition: "all 0.3s ease",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <i
-                    className="fas fa-calendar-check"
-                    style={{ marginRight: "8px" }}
-                  />
+                  <CalendarCheck style={{ marginRight: "8px" }} />
                   Book Now
+                  <span className="invisible" />
                 </button>
 
-                <a
+                <Link
                   href="https://wa.me/+250786140897"
                   target="_blank"
                   rel="noreferrer"
@@ -912,14 +923,15 @@ export default function PackageDetails() {
                     transition: "all 0.3s ease",
                     textDecoration: "none",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <i
-                    className="fab fa-whatsapp"
-                    style={{ marginRight: "8px" }}
-                  />
+                  <MessageCircle style={{ marginRight: "8px" }} />
                   Chat on WhatsApp
-                </a>
+                  <span className="invisible" />
+                </Link>
               </form>
             </div>
 
@@ -956,7 +968,7 @@ export default function PackageDetails() {
                   transition: "all 0.3s ease",
                 }}
               >
-                <i className="fas fa-phone" style={{ fontSize: "16px" }} />
+                <Phone style={{ fontSize: "16px" }} />
                 (+250) 786 140 897
               </a>
               <a
@@ -972,7 +984,7 @@ export default function PackageDetails() {
                   transition: "all 0.3s ease",
                 }}
               >
-                <i className="fas fa-envelope" style={{ fontSize: "16px" }} />
+                <Mail style={{ fontSize: "16px" }} />
                 administration@ebenconnections.com
               </a>
             </div>

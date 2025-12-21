@@ -223,7 +223,7 @@ export default function BookingPrintPage() {
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 overflow-hidden rounded-xl border border-black/10 bg-white">
               <Image
-                src="/Logo-011.png"
+                src="/Logo-011.webp"
                 alt="Eben Tours"
                 fill
                 className="object-contain p-1"

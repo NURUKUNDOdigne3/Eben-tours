@@ -1,3 +1,4 @@
+import { Earth, Tag } from "lucide-react";
 import styles from "./SinglePckage.module.css";
 
 export default function SinglePackage({
@@ -23,13 +24,14 @@ export default function SinglePackage({
       <div className={styles["img-box"]}>
         <img src={imageUrl || "/cro.webp"} alt={title} />
       </div>
-      <div className={styles["package-content"]}>
-        <h3>
-          <i className="fas fa-volcano"></i> {title}
-        </h3>
+      <div className={`${styles["package-content"]}`}>
+        <div className="flex items-center! gap-2">
+          {/* <Earth size={25} /> */}
+          <h3 className="text-[14px]!">{title}</h3>
+        </div>
         <p>{description || "Explore this tour package."}</p>
-        <span className={styles.price}>
-          <i className="fas fa-tag"></i> From ${price}
+        <span className={`flex items-center gap-2! ${styles.price}`}>
+          <Tag size={14} /> From ${price}
         </span>
         <a href={`/packages/details/${id}`} className={styles.btn}>
           <i className="fas fa-eye"></i> View Details

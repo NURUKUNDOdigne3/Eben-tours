@@ -7,16 +7,16 @@ type HeroMediaType = "image" | "video";
 type HeroMediaRow = { position: number; type: HeroMediaType; url: string };
 
 const fallbackSlides: HeroMediaRow[] = [
-  { position: 1, type: "video", url: "/vids/Web_vidd.mp4" },
+  { position: 1, type: "image", url: "/ken2.webp" },
   {
     position: 2,
     type: "video",
-    url: "/vids/4911905_Gorilla_Wildlife_1920x1080.mp4",
+    url: "/vids/458150_Lion_Lions_1920x1080.webm",
   },
   {
     position: 3,
-    type: "video",
-    url: "/vids/463059_Elephant_Elephants_1920x1080.mp4",
+    type: "image",
+    url: "/kenyaaa.webp",
   },
 ];
 

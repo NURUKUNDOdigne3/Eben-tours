@@ -230,7 +230,7 @@ export default function AdminCustomersPage() {
           sheetName: "Customers",
           title: "Customers Report",
           companyName: "Eben Tours",
-          logoUrl: "/Logo-011.png",
+          logoUrl: "/Logo-011.webp",
           meta: [
             { label: "Generated", value: stamp },
             { label: "Scope", value: scope },

@@ -124,7 +124,7 @@ export default function Footer() {
                 }}
               >
                 <img
-                  src="/log.png"
+                  src="/log.webp"
                   alt="Eben Tours Logo"
                   style={{
                     width: "48px",

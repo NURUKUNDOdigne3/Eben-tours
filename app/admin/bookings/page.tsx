@@ -375,7 +375,7 @@ export default function AdminBookingsPage() {
             sheetName: "Bookings",
             title: "Bookings Report",
             companyName: "Eben Tours",
-            logoUrl: "/Logo-011.png",
+            logoUrl: "/Logo-011.webp",
             meta: [
               { label: "Generated", value: stamp },
               { label: "Scope", value: scope },

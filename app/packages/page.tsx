@@ -4,6 +4,7 @@ import Filter from "../components/Filter";
 import SectionHeader from "../components/SectionHeader";
 import SinglePackage from "../components/SinglePackage";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type CountryKey = "all" | "rwanda" | "kenya" | "tanzania" | "uganda";
 
@@ -21,6 +22,7 @@ type PackageListRow = {
 };
 
 export default function PackagesPage() {
+  const searchParams = useSearchParams();
   const [rows, setRows] = useState<PackageListRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [country, setCountry] = useState<CountryKey>("all");
@@ -28,6 +30,8 @@ export default function PackagesPage() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
+    const filter = searchParams.get("filter");
+    if (filter) setCountry(filter as CountryKey);
     const q =
       country === "all" ? "" : `?country=${encodeURIComponent(country)}`;
     fetch(`/api/packages${q}`)

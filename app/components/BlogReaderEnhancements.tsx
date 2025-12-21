@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowUp, LinkIcon } from "lucide-react";
 
 function clamp(num: number, min: number, max: number) {
   return Math.min(max, Math.max(min, num));
@@ -77,14 +78,14 @@ export default function BlogReaderEnhancements({
               onClick={copyLink}
               className="inline-flex items-center justify-center rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
             >
-              Copy link
+              <LinkIcon />
             </button>
             <button
               type="button"
               onClick={scrollToTop}
               className="inline-flex items-center justify-center rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] transition hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-600/30"
             >
-              Top
+              <ArrowUp />
             </button>
           </div>
 

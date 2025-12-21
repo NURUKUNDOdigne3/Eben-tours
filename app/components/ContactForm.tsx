@@ -1,5 +1,6 @@
 "use client";
 
+import { Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import { PhoneInput } from "react-international-phone";
 export default function ContactForm() {
@@ -281,10 +282,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-map-marker-alt"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <MapPin style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4
@@ -345,10 +343,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-phone"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <Phone style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4
@@ -423,10 +418,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-envelope"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <Mail style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4
