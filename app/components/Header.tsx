@@ -5,7 +5,7 @@ export default function Header() {
     <header className={styles.header}>
       <div className={`${styles.container} ${styles.nav}`}>
         <div className={styles.brand}>
-          <img src="imgs/log.png" alt="ventures logo" />
+          <img src="/log.png" alt="ventures logo" />
           <div>
             <h1>Eben Tours safaris</h1>
             <div style={{ fontSize: "12px", color: "var(--muted)" }}>

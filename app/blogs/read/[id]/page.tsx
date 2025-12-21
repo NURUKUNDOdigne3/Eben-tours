@@ -60,7 +60,7 @@ export default async function BlogReadPage({
         >
           <div style={{ position: "relative" }}>
             <img
-              src={post.imageUrl || "/gorila.jpg"}
+              src={post.imageUrl || "/gorila.webp"}
               alt={post.title}
               style={{ width: "100%", height: "420px", objectFit: "cover" }}
             />

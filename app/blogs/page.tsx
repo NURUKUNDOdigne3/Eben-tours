@@ -59,7 +59,7 @@ export default function BlogsPage() {
                     id: post.id,
                     title: post.title,
                     excerpt: post.excerpt,
-                    image: post.imageUrl || "/gorila.jpg",
+                    image: post.imageUrl || "/gorila.webp",
                     readTime: post.readTime,
                     category: post.category,
                     content: post.content,

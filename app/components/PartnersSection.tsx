@@ -3,7 +3,7 @@ export default function PartnersSection() {
     <div className="partners-carousel" style={{ marginTop: "28px" }}>
       <div className="carousel-track">
         <div className="carousel-item">
-          <img src="/RDB.jpg" alt="RDB Partner logo" loading="lazy" />
+          <img src="/RDB.webp" alt="RDB Partner logo" loading="lazy" />
         </div>
         <div className="carousel-item">
           <img
@@ -13,7 +13,7 @@ export default function PartnersSection() {
           />
         </div>
         <div className="carousel-item">
-          <img src="/OneOnly-Logo.jpg" alt="One Only Partner" loading="lazy" />
+          <img src="/OneOnly-Logo.webp" alt="One Only Partner" loading="lazy" />
         </div>
         <div className="carousel-item">
           <img

@@ -21,7 +21,7 @@ export default function SinglePackage({
         <div className={`${styles.ribbon} z-99999`}>Most Popular</div>
       ) : null}
       <div className={styles["img-box"]}>
-        <img src={imageUrl || "/cro.jpg"} alt={title} />
+        <img src={imageUrl || "/cro.webp"} alt={title} />
       </div>
       <div className={styles["package-content"]}>
         <h3>

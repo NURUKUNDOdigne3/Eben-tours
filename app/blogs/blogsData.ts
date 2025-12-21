@@ -14,7 +14,7 @@ export const blogPosts: BlogPost[] = [
     title: "What to pack for a volcano trek",
     excerpt:
       "Essential gear and clothing recommendations to stay comfortable and safe during your mountain adventure.",
-    image: "/gorila.jpg",
+    image: "/gorila.webp",
     readTime: "5 min read",
     category: "Safety tips",
     content: [
@@ -30,7 +30,7 @@ export const blogPosts: BlogPost[] = [
     title: "Gorilla trekking etiquette: how to behave respectfully",
     excerpt:
       "A quick guide to responsible gorilla trekking that protects wildlife and ensures a better experience for everyone.",
-    image: "/gorila.jpg",
+    image: "/gorila.webp",
     readTime: "6 min read",
     category: "Conservation",
     content: [
@@ -46,7 +46,7 @@ export const blogPosts: BlogPost[] = [
     title: "Best time to visit Rwanda: weather and travel seasons",
     excerpt:
       "Learn how Rwanda’s seasons affect gorilla trekking, safaris, and cultural travel — and plan the perfect trip.",
-    image: "/lion.jpg",
+    image: "/lion.webp",
     readTime: "7 min read",
     category: "Travel planning",
     content: [

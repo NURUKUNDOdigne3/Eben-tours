@@ -123,7 +123,7 @@ export default function AboutPage() {
               }}
             >
               <img
-                src="/lion.jpg"
+                src="/lion.webp"
                 alt="Safari Adventure"
                 style={{
                   width: "100%",

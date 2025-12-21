@@ -15,7 +15,7 @@ export default function DestinationPage() {
           title="Rwanda"
           isFeatured={true}
           flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
+          bg="/gorila.webp"
           peakSeason="Jun-Sep"
           description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
         />
@@ -23,7 +23,7 @@ export default function DestinationPage() {
           title="Rwanda"
           isFeatured={false}
           flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
+          bg="/gorila.webp"
           peakSeason="Jun-Sep"
           description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
         />
@@ -31,7 +31,7 @@ export default function DestinationPage() {
           title="Rwanda"
           isFeatured={false}
           flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
+          bg="/gorila.webp"
           peakSeason="Jun-Sep"
           description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
         />
@@ -39,7 +39,7 @@ export default function DestinationPage() {
           title="Rwanda"
           isFeatured={false}
           flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
+          bg="/gorila.webp"
           peakSeason="Jun-Sep"
           description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
         />

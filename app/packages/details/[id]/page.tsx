@@ -109,7 +109,7 @@ export default function PackageDetails() {
           }}
         >
           <img
-            src={safePkg.imageUrl || "/canopy_walk.jpg"}
+            src={safePkg.imageUrl || "/canopy_walk.webp"}
             alt={safePkg.title}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />

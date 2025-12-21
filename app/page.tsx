@@ -46,7 +46,7 @@ export default async function Home() {
       id: p.publicId,
       title: p.title,
       excerpt: excerptFromParagraphs(paragraphs),
-      image: p.imageUrl || "/gorila.jpg",
+      image: p.imageUrl || "/gorila.webp",
       readTime: p.readTime,
       category: p.category,
       content: paragraphs,

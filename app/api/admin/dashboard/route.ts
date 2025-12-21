@@ -7,10 +7,11 @@ export async function GET() {
   if (!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const [totalBookings, revenueAgg, totalTours] = await Promise.all([
+  const [totalBookings, revenueAgg, totalTours, messages] = await Promise.all([
     prisma.booking.count(),
     prisma.booking.aggregate({ _sum: { amount: true } }),
     prisma.package.count(),
+    prisma.auditEvent.count({ where: { action: "message" } }),
   ]);
 
   const revenue = revenueAgg._sum.amount ?? 0;
@@ -44,36 +45,39 @@ export async function GET() {
     bucket.revenue += b.amount;
   }
 
-  const packageRevenue = await prisma.booking.groupBy({
-    by: ["packageId"],
-    _sum: { amount: true },
+  const countryRevenueRows = await prisma.booking.findMany({
+    select: {
+      amount: true,
+      package: { select: { country: true } },
+    },
   });
 
-  const packages = await prisma.package.findMany({
-    where: { id: { in: packageRevenue.map((p) => p.packageId) } },
-    select: { id: true, title: true },
-  });
+  const countryTotals = new Map<string, number>();
+  for (const row of countryRevenueRows) {
+    const k = String(row.package.country);
+    countryTotals.set(k, (countryTotals.get(k) ?? 0) + row.amount);
+  }
 
-  const breakdown = packageRevenue
-    .map((p) => ({
-      name: packages.find((x) => x.id === p.packageId)?.title ?? "Unknown",
-      value: p._sum.amount ?? 0,
-    }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 6);
+  const breakdownTotal = Array.from(countryTotals.values()).reduce(
+    (a, b) => a + b,
+    0
+  );
 
-  const breakdownTotal = breakdown.reduce((a, b) => a + b.value, 0);
-  const breakdownPercent = breakdown.map((b) => ({
-    name: b.name,
-    value:
-      breakdownTotal === 0 ? 0 : Math.round((b.value / breakdownTotal) * 100),
-  }));
+  const breakdownPercent =
+    breakdownTotal === 0
+      ? [{ name: "No revenue yet", value: 100 }]
+      : Array.from(countryTotals.entries())
+          .map(([name, value]) => ({
+            name,
+            value: Math.round((value / breakdownTotal) * 100),
+          }))
+          .sort((a, b) => b.value - a.value);
 
   return NextResponse.json({
     kpis: {
       totalBookings,
       revenue,
-      messages: 0,
+      messages,
       totalTours,
     },
     bookingTrends: buckets.map(({ name, bookings }) => ({ name, bookings })),
