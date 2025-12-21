@@ -1,0 +1,130 @@
+/* -----------------------------
+       Header / Navigation
+       ----------------------------- */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  backdrop-filter: blur(12px);
+  background: linear-gradient(
+    180deg,
+    rgba(250, 247, 244, 0.7),
+    rgba(250, 247, 244, 0.5)
+  );
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+}
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.brand h1 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  margin: 0;
+  color: var(--color-primary);
+}
+
+.header nav ul {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+.header nav a {
+  font-weight: 600;
+  color: var(--color-secondary);
+  transition: all 0.3s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.header nav a:hover {
+  color: var(--color-primary);
+  background: rgba(30, 86, 49, 0.1);
+  backdrop-filter: blur(10px);
+}
+.active {
+  color: var(--color-primary);
+  background: rgba(30, 86, 49, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.cta-primary {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 86, 49, 0.8),
+    rgba(41, 81, 53, 0.8)
+  );
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+  transition: all 0.4s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(10px);
+}
+
+.cta-primary:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(41, 81, 53, 0.9),
+    rgba(30, 86, 49, 0.9)
+  );
+  box-shadow: 0 12px 40px rgba(212, 175, 55, 0.3);
+  transform: translateY(-2px);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+}
+
+/* mobile nav button */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 0;
+  font-size: 24px;
+  color: var(--color-primary);
+  cursor: pointer;
+  padding: 8px;
+  transition: all 0.3s ease;
+}
+
+.nav-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* Mobile menu styles */
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 10px 20px;
+}
+
+@media screen and (max-width: 1200px) {
+  .container {
+    width: calc(100% - 30px);
+    max-width: 100%;
+  }
+}
+@media screen and (min-width: 1024px) {
+  .container {
+    max-width: 1200px;
+  }
+}
