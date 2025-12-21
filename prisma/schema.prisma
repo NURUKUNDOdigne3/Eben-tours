@@ -50,6 +50,11 @@ model User {
   email     String?
   name      String?
   role      String   @default("admin")
+  orgName   String   @default("Eben Tours")
+  orgPhone  String   @default("+")
+  notifyBookings  Boolean @default(true)
+  notifyMessages  Boolean @default(true)
+  notifyMarketing Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -10,6 +10,7 @@ const navItems: Array<{
     | "blogs"
     | "customers"
     | "revenue"
+    | "audit"
     | "settings";
 }> = [
   { label: "Dashboard", href: "/admin", icon: "dashboard" },
@@ -18,6 +19,7 @@ const navItems: Array<{
   { label: "Blogs", href: "/admin/blogs", icon: "blogs" },
   { label: "Customers", href: "/admin/customers", icon: "customers" },
   { label: "Revenue", href: "/admin/revenue", icon: "revenue" },
+  { label: "Audit", href: "/admin/audit", icon: "audit" },
   { label: "Settings", href: "/admin/settings", icon: "settings" },
 ];
 
@@ -109,6 +111,21 @@ function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
       >
         <path
           d="M12 1C5.925 1 1 5.925 1 12s4.925 11 11 11 11-4.925 11-11S18.075 1 12 1Zm1 17.93V20h-2v-1.07c-1.943-.31-3.276-1.62-3.4-3.32H9.6c.09.85.79 1.53 2.4 1.53 1.7 0 2.3-.68 2.3-1.36 0-.71-.38-1.09-2.6-1.62-2.46-.6-4.22-1.52-4.22-3.59 0-1.67 1.3-2.89 3.32-3.23V4h2v1.09c2.12.36 3.18 1.77 3.28 3.1h-1.98c-.1-.9-.7-1.5-2.3-1.5-1.5 0-2.2.54-2.2 1.28 0 .69.58 1.04 2.6 1.54 2.02.5 4.22 1.28 4.22 3.66 0 1.78-1.25 3.09-3.32 3.44Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+
+  if (name === "audit")
+    return (
+      <svg
+        className={common}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 1a9 9 0 1 0 9 9c0-1.1-.2-2.15-.56-3.13l-1.74 1.01c.2.66.3 1.37.3 2.12a7 7 0 1 1-7-7c1.1 0 2.12.25 3.03.7l1-1.73A8.95 8.95 0 0 0 12 1Zm7.59 3.17-8.2 8.2-2.98-2.98-1.41 1.41 4.39 4.39 9.61-9.61-1.41-1.41Z"
           fill="currentColor"
         />
       </svg>
