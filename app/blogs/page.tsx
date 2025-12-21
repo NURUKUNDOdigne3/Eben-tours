@@ -1,5 +1,6 @@
 import SectionHeader from "../components/SectionHeader";
 import SingleBlog from "../components/SingleBlog";
+import { blogPosts } from "./blogsData";
 
 export default function BlogsPage() {
   return (
@@ -12,12 +13,9 @@ export default function BlogsPage() {
 
       <div className="container">
         <div className="grid grid-cols-3 gap-4">
-          <SingleBlog />
-          <SingleBlog />
-          <SingleBlog />
-          <SingleBlog />
-          <SingleBlog />
-          <SingleBlog />
+          {blogPosts.map((post) => (
+            <SingleBlog key={post.id} post={post} />
+          ))}
         </div>
       </div>
     </>

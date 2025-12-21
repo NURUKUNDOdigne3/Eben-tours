@@ -1,13 +1,12 @@
-export default function SingleBlog() {
+import Link from "next/link";
+import type { BlogPost } from "../blogs/blogsData";
+
+export default function SingleBlog({ post }: { post: BlogPost }) {
   return (
     <article className="card">
-      <img
-        src="/gorila.jpg"
-        alt="What to pack for a volcano trek"
-        loading="lazy"
-      />
+      <img src={post.image} alt={post.title} loading="lazy" />
       <div>
-        <h3>What to pack for a volcano trek</h3>
+        <h3>{post.title}</h3>
         <p
           style={{
             color: "#666",
@@ -17,24 +16,23 @@ export default function SingleBlog() {
             flex: 1,
           }}
         >
-          Essential gear and clothing recommendations to stay comfortable and
-          safe during your mountain adventure.
+          {post.excerpt}
         </p>
         <p className="meta">
           <i
             className="fas fa-clock"
             style={{ color: "var(--color-primary)" }}
           ></i>{" "}
-          5 min read <span style={{ color: "#ccc" }}>•</span>{" "}
+          {post.readTime} <span style={{ color: "#ccc" }}>•</span>{" "}
           <i
             className="fas fa-shield-alt"
             style={{ color: "var(--color-primary)" }}
           ></i>{" "}
-          Safety tips
+          {post.category}
         </p>
-        <a href="#" className="read-more">
+        <Link href={`/blogs/read/${post.id}`} className="read-more">
           Read Article
-        </a>
+        </Link>
       </div>
     </article>
   );

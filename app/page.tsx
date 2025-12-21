@@ -9,6 +9,7 @@ import PartnersSection from "./components/PartnersSection";
 import SingleBlog from "./components/SingleBlog";
 import ContactForm from "./components/ContactForm";
 import Footer from "./components/Footer";
+import { blogPosts, type BlogPost } from "./blogs/blogsData";
 
 export default function Home() {
   return (
@@ -168,7 +169,7 @@ export default function Home() {
             <p>Stories, tips, and insights from the trail</p>
           </div>
           <Link
-            href="/blog"
+            href="/blogs"
             className="hover:translate-x-2"
             style={{
               fontWeight: 700,
@@ -182,9 +183,9 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <SingleBlog />
-          <SingleBlog />
-          <SingleBlog />
+          {blogPosts.map((post) => (
+            <SingleBlog key={post.id} post={post} />
+          ))}
         </div>
       </main>
 
