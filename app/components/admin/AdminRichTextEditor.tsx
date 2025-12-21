@@ -59,6 +59,7 @@ export default function AdminRichTextEditor({
   );
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions,
     content: value ?? undefined,
     editorProps: {
