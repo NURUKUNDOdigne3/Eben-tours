@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAdminOps } from "./AdminOpsProvider";
+import { SignedIn, UserAvatar, UserButton } from "@clerk/nextjs";
 
 export default function AdminTopbar() {
   const [query, setQuery] = useState("");
@@ -224,17 +225,20 @@ export default function AdminTopbar() {
           </button>
 
           <div className="ml-1 flex items-center gap-2 rounded-xl border border-emerald-900/10 bg-white px-2 py-1.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-700 text-xs font-extrabold text-white">
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+            {/* <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-700 text-xs font-extrabold text-white">
               FB
-            </div>
-            <div className="hidden sm:block">
+            </div> */}
+            {/* <div className="hidden sm:block">
               <div className="text-xs font-extrabold text-[var(--color-secondary)]">
                 Fab
               </div>
               <div className="text-[10px] font-semibold text-[var(--muted)]">
                 Manager
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

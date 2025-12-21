@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 
-const data = [
+const seedData = [
   { name: "Mon", bookings: 62 },
   { name: "Tue", bookings: 78 },
   { name: "Wed", bookings: 90 },
@@ -19,6 +19,8 @@ const data = [
   { name: "Sat", bookings: 88 },
   { name: "Sun", bookings: 74 },
 ];
+
+export type BookingTrendPoint = { name: string; bookings: number };
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -38,12 +40,18 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-export default function BookingTrendsChart() {
+export default function BookingTrendsChart({
+  data,
+}: {
+  data?: BookingTrendPoint[];
+}) {
+  const chartData = data && data.length > 0 ? data : seedData;
+
   return (
     <div className="h-[260px] w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          data={data}
+          data={chartData}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
         >
           <defs>

@@ -2,10 +2,21 @@
 
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-const data = [
+const seedData = [
   { name: "Safari", value: 42, color: "#166534" },
   { name: "Trekking", value: 33, color: "#16a34a" },
   { name: "Climbing", value: 25, color: "#84cc16" },
+];
+
+export type RevenueBreakdownEntry = { name: string; value: number };
+
+const palette = [
+  "#166534",
+  "#16a34a",
+  "#84cc16",
+  "#0f766e",
+  "#047857",
+  "#65a30d",
 ];
 
 function CustomTooltip({ active, payload }: any) {
@@ -27,7 +38,18 @@ function CustomTooltip({ active, payload }: any) {
   );
 }
 
-export default function RevenueBreakdownChart() {
+export default function RevenueBreakdownChart({
+  data,
+}: {
+  data?: RevenueBreakdownEntry[];
+}) {
+  const chartData = (data && data.length > 0 ? data : seedData).map(
+    (entry, idx) => ({
+      ...entry,
+      color: (entry as any).color ?? palette[idx % palette.length],
+    })
+  );
+
   return (
     <div className="w-full">
       <div className="h-[240px]">
@@ -35,7 +57,7 @@ export default function RevenueBreakdownChart() {
           <PieChart>
             <Tooltip content={<CustomTooltip />} />
             <Pie
-              data={data}
+              data={chartData}
               dataKey="value"
               nameKey="name"
               innerRadius={62}
@@ -44,7 +66,7 @@ export default function RevenueBreakdownChart() {
               stroke="#fff"
               strokeWidth={2}
             >
-              {data.map((entry) => (
+              {chartData.map((entry) => (
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
@@ -53,7 +75,7 @@ export default function RevenueBreakdownChart() {
       </div>
 
       <div className="mt-3 space-y-2">
-        {data.map((entry) => (
+        {chartData.map((entry) => (
           <div
             key={entry.name}
             className="flex items-center justify-between text-xs font-semibold"

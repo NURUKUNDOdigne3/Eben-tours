@@ -1,10 +1,66 @@
+"use client";
+
 import AdminKpiCard from "../components/admin/AdminKpiCard";
 import BookingTrendsChart from "../components/admin/charts/BookingTrendsChart";
 import RevenueBreakdownChart from "../components/admin/charts/RevenueBreakdownChart";
 import AdminActivityFeed from "../components/admin/AdminActivityFeed";
 import AdminAuditLog from "../components/admin/AdminAuditLog";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+
+type DashboardResponse = {
+  kpis: {
+    totalBookings: number;
+    revenue: number;
+    messages: number;
+    totalTours: number;
+  };
+  bookingTrends: Array<{ name: string; bookings: number }>;
+  revenueBreakdown: Array<{ name: string; value: number }>;
+};
+
+function formatMoney(value: number) {
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+  return `$${value.toFixed(0)}`;
+}
 
 export default function AdminDashboardPage() {
+  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    axios
+      .get<DashboardResponse>("/api/admin/dashboard")
+      .then((res) => {
+        if (!alive) return;
+        setData(res.data);
+      })
+      .catch(() => {
+        // ignore; Clerk middleware handles redirect
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const kpis = useMemo(() => {
+    return (
+      data?.kpis ?? {
+        totalBookings: 0,
+        revenue: 0,
+        messages: 0,
+        totalTours: 0,
+      }
+    );
+  }, [data]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -20,26 +76,26 @@ export default function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2! lg:grid-cols-4!">
         <AdminKpiCard
           title="Total Bookings"
-          value="2,547"
-          delta="+12% from last month"
+          value={loading ? "..." : kpis.totalBookings.toLocaleString()}
+          delta="From database"
           icon="calendar"
         />
         <AdminKpiCard
           title="Revenue"
-          value="$89.5K"
-          delta="+8% from last month"
+          value={loading ? "..." : formatMoney(kpis.revenue)}
+          delta="From database"
           icon="money"
         />
         <AdminKpiCard
           title="Messages"
-          value="342"
-          delta="+18% from last month"
+          value={loading ? "..." : kpis.messages.toLocaleString()}
+          delta="From database"
           icon="mail"
         />
         <AdminKpiCard
           title="Total Tours"
-          value="156"
-          delta="+24 from last month"
+          value={loading ? "..." : kpis.totalTours.toLocaleString()}
+          delta="From database"
           icon="map"
         />
       </div>
@@ -65,7 +121,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <BookingTrendsChart />
+            <BookingTrendsChart data={data?.bookingTrends} />
           </div>
           <AdminAuditLog />
         </div>
@@ -81,7 +137,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            <RevenueBreakdownChart />
+            <RevenueBreakdownChart data={data?.revenueBreakdown} />
           </div>
           <AdminActivityFeed />
         </div>

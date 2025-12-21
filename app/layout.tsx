@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "react-international-phone/style.css";
 import "quill/dist/quill.snow.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import PublicShell from "./components/PublicShell";
 
 const geistSans = Geist({
@@ -26,12 +27,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased `}
-      >
-        <PublicShell>{children}</PublicShell>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased `}
+        >
+          <PublicShell>{children}</PublicShell>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

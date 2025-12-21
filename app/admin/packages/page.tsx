@@ -1,13 +1,14 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminConfirmModal from "@/app/components/admin/AdminConfirmModal";
 import AdminDataTable from "@/app/components/admin/table/AdminDataTable";
 import AdminDrawer from "@/app/components/admin/AdminDrawer";
 import { useAdminOps } from "@/app/components/admin/AdminOpsProvider";
+import axios from "axios";
 
-type PackageStatus = "active" | "draft";
+type PackageStatus = "active" | "draft" | "disabled";
 
 type PackageRow = {
   id: string;
@@ -21,48 +22,15 @@ type PackageRow = {
   updatedAt: string;
 };
 
-const seedPackages: PackageRow[] = [
-  {
-    id: "PKG-1001",
-    title: "Volcano & Gorilla Trekking",
-    location: "Ruhengeri, Rwanda",
-    durationDays: 5,
-    price: 650,
-    maxGroup: 8,
-    featured: true,
-    status: "active",
-    updatedAt: "2025-12-02",
-  },
-  {
-    id: "PKG-1002",
-    title: "Akagera Big Five Safari",
-    location: "Akagera, Rwanda",
-    durationDays: 3,
-    price: 480,
-    maxGroup: 12,
-    featured: false,
-    status: "active",
-    updatedAt: "2025-11-18",
-  },
-  {
-    id: "PKG-1003",
-    title: "Nyungwe Chimpanzee Trek",
-    location: "Nyungwe, Rwanda",
-    durationDays: 2,
-    price: 420,
-    maxGroup: 10,
-    featured: false,
-    status: "draft",
-    updatedAt: "2025-12-10",
-  },
-];
-
 function StatusPill({ status }: { status: PackageStatus }) {
   const styles =
     status === "active"
       ? "bg-emerald-50 text-emerald-700 border-emerald-900/10"
-      : "bg-amber-50 text-amber-700 border-amber-900/10";
-  const label = status === "active" ? "Active" : "Draft";
+      : status === "draft"
+      ? "bg-amber-50 text-amber-700 border-amber-900/10"
+      : "bg-slate-100 text-slate-700 border-slate-900/10";
+  const label =
+    status === "active" ? "Active" : status === "draft" ? "Draft" : "Disabled";
 
   return (
     <span
@@ -82,18 +50,36 @@ function FeaturedPill({ featured }: { featured: boolean }) {
   );
 }
 
-function newId(prefix: string) {
-  return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
-}
-
 export default function AdminPackagesPage() {
   const { pushActivity, pushAudit, pushNotification } = useAdminOps();
-  const [rows, setRows] = useState<PackageRow[]>(seedPackages);
+  const [rows, setRows] = useState<PackageRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
   const [toast, setToast] = useState<null | string>(null);
+
+  const fetchRows = useCallback(async () => {
+    const res = await axios.get<{ rows: PackageRow[] }>("/api/admin/packages");
+    setRows(res.data.rows);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    fetchRows()
+      .catch(() => {
+        // ignore for now; Clerk middleware handles redirect
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [fetchRows]);
 
   const editing = useMemo(
     () => rows.find((r) => r.id === editingId) ?? null,
@@ -152,43 +138,35 @@ export default function AdminPackagesPage() {
     if (!Number.isFinite(price) || price <= 0) return;
     if (!Number.isFinite(maxGroup) || maxGroup <= 0) return;
 
-    const now = new Date().toISOString().slice(0, 10);
     const time = "Just now";
     const actionLabel = editingId ? "updated" : "created";
-    const targetId = editingId ?? newId("PKG");
+    const targetId = editingId ?? "";
 
-    setRows((prev) => {
-      if (!editingId) {
-        const created: PackageRow = {
-          id: targetId,
-          title: draftTitle.trim(),
-          location: draftLocation.trim(),
-          durationDays,
-          price,
-          maxGroup,
-          featured: draftFeatured,
-          status: draftStatus,
-          updatedAt: now,
-        };
-        return [created, ...prev];
-      }
+    const payload = {
+      title: draftTitle.trim(),
+      location: draftLocation.trim(),
+      durationDays,
+      price,
+      maxGroup,
+      featured: draftFeatured,
+      status: draftStatus,
+    };
 
-      return prev.map((r) =>
-        r.id === editingId
-          ? {
-              ...r,
-              title: draftTitle.trim(),
-              location: draftLocation.trim(),
-              durationDays,
-              price,
-              maxGroup,
-              featured: draftFeatured,
-              status: draftStatus,
-              updatedAt: now,
-            }
-          : r
-      );
-    });
+    if (editingId) {
+      void axios
+        .patch(`/api/admin/packages/${editingId}`, payload)
+        .then(() => fetchRows())
+        .catch(() => {
+          // ignore
+        });
+    } else {
+      void axios
+        .post(`/api/admin/packages`, payload)
+        .then(() => fetchRows())
+        .catch(() => {
+          // ignore
+        });
+    }
 
     setToast(editingId ? "Package updated" : "Package created");
     window.setTimeout(() => setToast(null), 1800);
@@ -198,7 +176,9 @@ export default function AdminPackagesPage() {
       entity: "package",
       action: editingId ? "update" : "create",
       actor: "Fab",
-      summary: `${targetId} ${actionLabel}: ${draftTitle.trim()}`,
+      summary: `${
+        targetId ? `${targetId} ` : ""
+      }${actionLabel}: ${draftTitle.trim()}`,
       time,
       href: "/admin/packages",
     });
@@ -225,57 +205,76 @@ export default function AdminPackagesPage() {
     draftStatus,
     draftTitle,
     editingId,
+    fetchRows,
     pushActivity,
     pushAudit,
     pushNotification,
   ]);
 
-  const openDelete = useCallback((id: string) => {
+  const openDisable = useCallback((id: string) => {
     setConfirmTargetId(id);
     setConfirmOpen(true);
   }, []);
 
-  const closeDelete = useCallback(() => {
+  const closeDisable = useCallback(() => {
     setConfirmOpen(false);
     setConfirmTargetId(null);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDisable = useCallback(() => {
     if (!confirmTargetId) return;
     const time = "Just now";
     const deleted = rows.find((r) => r.id === confirmTargetId);
-    setRows((prev) => prev.filter((r) => r.id !== confirmTargetId));
-    setToast("Package deleted");
-    window.setTimeout(() => setToast(null), 1800);
-    closeDelete();
 
-    pushAudit({
-      entity: "package",
-      action: "delete",
-      actor: "Fab",
-      summary: `${confirmTargetId} deleted${
-        deleted ? `: ${deleted.title}` : ""
-      }`,
-      time,
-      href: "/admin/packages",
-    });
-    pushActivity({
-      title: "Package deleted",
-      meta: deleted ? deleted.title : confirmTargetId,
-      time,
-      tone: "red",
-      href: "/admin/packages",
-    });
-    pushNotification({
-      type: "system",
-      title: "Package deleted",
-      body: deleted ? deleted.title : confirmTargetId,
-      time,
-      href: "/admin/packages",
-    });
+    void axios
+      .delete(`/api/admin/packages/${confirmTargetId}`)
+      .then(() => fetchRows())
+      .then(() => {
+        setToast("Package disabled");
+        window.setTimeout(() => setToast(null), 1800);
+        closeDisable();
+
+        pushAudit({
+          entity: "package",
+          action: "update",
+          actor: "Fab",
+          summary: `${confirmTargetId} disabled${
+            deleted ? `: ${deleted.title}` : ""
+          }`,
+          time,
+          href: "/admin/packages",
+        });
+        pushActivity({
+          title: "Package disabled",
+          meta: deleted ? deleted.title : confirmTargetId,
+          time,
+          tone: "amber",
+          href: "/admin/packages",
+        });
+        pushNotification({
+          type: "system",
+          title: "Package disabled",
+          body: deleted ? deleted.title : confirmTargetId,
+          time,
+          href: "/admin/packages",
+        });
+      })
+      .catch((err) => {
+        const status = err?.response?.status as number | undefined;
+        const msg = err?.response?.data?.error as string | undefined;
+        if (status) {
+          setToast(msg || "Disable failed");
+          window.setTimeout(() => setToast(null), 2600);
+          return;
+        }
+
+        setToast("Disable failed");
+        window.setTimeout(() => setToast(null), 2600);
+      });
   }, [
-    closeDelete,
+    closeDisable,
     confirmTargetId,
+    fetchRows,
     pushActivity,
     pushAudit,
     pushNotification,
@@ -375,34 +374,35 @@ export default function AdminPackagesPage() {
             </button>
             <button
               type="button"
-              onClick={() => openDelete(row.original.id)}
-              className="rounded-xl border border-red-900/10 bg-white px-3 py-2 text-xs font-extrabold text-red-700 hover:bg-red-50"
+              onClick={() => openDisable(row.original.id)}
+              disabled={row.original.status === "disabled"}
+              className="rounded-xl border border-slate-900/10 bg-white px-3 py-2 text-xs font-extrabold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Delete
+              Disable
             </button>
           </div>
         ),
       },
     ],
-    [openDelete, openEdit]
+    [openDisable, openEdit]
   );
 
   return (
     <>
       <AdminConfirmModal
         open={confirmOpen}
-        title="Delete package?"
+        title="Disable package?"
         description={
           <span>
-            This will remove the package from the list. You can re-add it later.
+            This will disable the package. Existing bookings remain intact.
           </span>
         }
-        confirmLabel="Yes, delete"
+        confirmLabel="Yes, disable"
         cancelLabel="Cancel"
-        variant="danger"
-        onClose={closeDelete}
-        onConfirm={confirmDelete}
-        footerNote="Mock action (UI state only)."
+        variant="default"
+        onClose={closeDisable}
+        onConfirm={confirmDisable}
+        footerNote="Disabled packages can be re-enabled later."
       />
 
       <AdminDrawer
@@ -623,8 +623,9 @@ export default function AdminPackagesPage() {
                       className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)]"
                     >
                       <option value="all">All</option>
-                      <option value="active">Active</option>
                       <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="disabled">Disabled</option>
                     </select>
                   </div>
 
@@ -637,6 +638,16 @@ export default function AdminPackagesPage() {
                     className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                   >
                     Reset
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void fetchRows();
+                    }}
+                    className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                  >
+                    {loading ? "Loading..." : "Refresh"}
                   </button>
                 </div>
               );

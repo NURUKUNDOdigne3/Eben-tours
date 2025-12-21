@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+enum PackageStatus {
+  active
+  draft
+  disabled
+}
+
+enum BlogStatus {
+  draft
+  published
+}
+
+enum AuditEntity {
+  booking
+  package
+  blog
+  customer
+  system
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  status_change
+  publish
+  unpublish
+  message
+  export
+  print
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String?
+  name      String?
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditEvents AuditEvent[]
+}
+
+model Customer {
+  id           String   @id @default(cuid())
+  publicId     String   @unique
+  name         String
+  email        String
+  phone        String?
+  segment      String   @default("new")
+  note         String?
+  lastBooking  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([email])
+}
+
+model Package {
+  id          String        @id @default(cuid())
+  publicId    String        @unique
+  title       String
+  location    String
+  durationDays Int
+  price       Int
+  maxGroup    Int
+  featured    Boolean       @default(false)
+  status      PackageStatus @default(active)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  bookings Booking[]
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  publicId    String        @unique
+  travelDate  DateTime
+  travellers  Int
+  amount      Int
+  status      BookingStatus @default(pending)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String
+
+  package    Package  @relation(fields: [packageId], references: [id])
+  packageId  String
+
+  @@index([status])
+  @@index([travelDate])
+}
+
+model BlogPost {
+  id         String     @id @default(cuid())
+  publicId   String     @unique
+  title      String
+  category   String
+  authorName String
+  status     BlogStatus @default(draft)
+  readTime   String
+  content    Json
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([status])
+  @@index([category])
+}
+
+model AuditEvent {
+  id        String      @id @default(cuid())
+  entity    AuditEntity
+  action    AuditAction
+  summary   String
+  href      String?
+  actorName String
+  actorId   String?
+  createdAt DateTime    @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt])
+  @@index([entity])
+}
