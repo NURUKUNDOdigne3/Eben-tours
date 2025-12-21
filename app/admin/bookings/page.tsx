@@ -90,6 +90,10 @@ export default function AdminBookingsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copied, setCopied] = useState<null | "copied" | "failed">(null);
+  const [contacted, setContacted] = useState<null | "message" | "email">(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftDate, setDraftDate] = useState<string>("");
+  const [draftTravellers, setDraftTravellers] = useState<string>("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmIds, setConfirmIds] = useState<string[]>([]);
   const [confirmAction, setConfirmAction] = useState<
@@ -109,6 +113,8 @@ export default function AdminBookingsPage() {
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
     setCopied(null);
+    setContacted(null);
+    setIsEditing(false);
   }, []);
 
   const copyId = useCallback(async () => {
@@ -132,6 +138,35 @@ export default function AdminBookingsPage() {
     },
     [selected]
   );
+
+  const startEdit = useCallback(() => {
+    if (!selected) return;
+    setDraftDate(selected.date);
+    setDraftTravellers(String(selected.travellers));
+    setIsEditing(true);
+  }, [selected]);
+
+  const cancelEdit = useCallback(() => {
+    setIsEditing(false);
+    setDraftDate("");
+    setDraftTravellers("");
+  }, []);
+
+  const saveEdit = useCallback(() => {
+    if (!selected) return;
+    const travellersNum = Number(draftTravellers);
+    if (!draftDate) return;
+    if (!Number.isFinite(travellersNum) || travellersNum <= 0) return;
+
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === selected.id
+          ? { ...r, date: draftDate, travellers: travellersNum }
+          : r
+      )
+    );
+    setIsEditing(false);
+  }, [draftDate, draftTravellers, selected]);
 
   const setStatusBulk = useCallback((ids: string[], status: BookingStatus) => {
     if (ids.length === 0) return;
@@ -267,7 +302,7 @@ export default function AdminBookingsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-emerald-900/10 bg-[#f6f8f7] p-4">
+            <div className="rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-50 to-white p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-xs font-extrabold text-[var(--muted)]">
@@ -278,26 +313,132 @@ export default function AdminBookingsPage() {
                   </div>
                   <div className="mt-2 text-xs font-semibold text-[var(--muted)]">
                     Package: {selected.packageName}
-                    <br />
-                    Date: {selected.date}
-                    <br />
-                    Travellers: {selected.travellers}
                   </div>
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 text-right">
                   <StatusBadge status={selected.status} />
+                  <div className="mt-2 text-xs font-semibold text-[var(--muted)]">
+                    Total:{" "}
+                    <span className="font-extrabold text-[var(--color-secondary)]">
+                      ${selected.amount.toFixed(0)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 rounded-2xl border border-emerald-900/10 bg-white p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xs font-extrabold text-[var(--muted)]">
+                    DETAILS
+                  </div>
+                  {!isEditing ? (
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                    >
+                      Edit
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={cancelEdit}
+                        className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={saveEdit}
+                        className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-emerald-900/10 bg-[#f6f8f7] p-3">
+                    <div className="text-[11px] font-extrabold text-[var(--muted)]">
+                      DATE
+                    </div>
+                    {!isEditing ? (
+                      <div className="mt-1 text-sm font-extrabold text-[var(--color-secondary)]">
+                        {selected.date}
+                      </div>
+                    ) : (
+                      <input
+                        type="date"
+                        value={draftDate}
+                        onChange={(e) => setDraftDate(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-bold text-[var(--color-secondary)]"
+                      />
+                    )}
+                  </div>
+                  <div className="rounded-2xl border border-emerald-900/10 bg-[#f6f8f7] p-3">
+                    <div className="text-[11px] font-extrabold text-[var(--muted)]">
+                      TRAVELLERS
+                    </div>
+                    {!isEditing ? (
+                      <div className="mt-1 text-sm font-extrabold text-[var(--color-secondary)]">
+                        {selected.travellers}
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        min={1}
+                        value={draftTravellers}
+                        onChange={(e) => setDraftTravellers(e.target.value)}
+                        className="mt-1 w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-bold text-[var(--color-secondary)]"
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
-                <div className="text-xs font-extrabold text-[var(--muted)]">
-                  AMOUNT
+                <div className="mb-3 text-xs font-extrabold text-[var(--muted)]">
+                  CONTACT
                 </div>
-                <div className="mt-1 text-xl font-extrabold text-[var(--color-secondary)]">
-                  ${selected.amount.toFixed(0)}
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContacted("message");
+                      window.setTimeout(() => setContacted(null), 1800);
+                    }}
+                    className="rounded-xl border border-emerald-900/10 bg-white px-4 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                  >
+                    Send message
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setContacted("email");
+                      window.setTimeout(() => setContacted(null), 1800);
+                    }}
+                    className="rounded-xl bg-[var(--color-secondary)] px-4 py-2 text-xs font-extrabold text-white hover:opacity-90"
+                  >
+                    Email
+                  </button>
+                </div>
+                {contacted === "message" && (
+                  <div className="mt-2 text-xs font-semibold text-emerald-700">
+                    Message queued (mock).
+                  </div>
+                )}
+                {contacted === "email" && (
+                  <div className="mt-2 text-xs font-semibold text-emerald-700">
+                    Email draft opened (mock).
+                  </div>
+                )}
+                <div className="mt-3 text-xs font-semibold text-[var(--muted)]">
+                  Next step: wire this to WhatsApp / email provider.
                 </div>
               </div>
 
@@ -327,6 +468,63 @@ export default function AdminBookingsPage() {
                     Could not copy.
                   </div>
                 )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-emerald-900/10 bg-white p-4">
+              <div className="mb-3 text-xs font-extrabold text-[var(--muted)]">
+                ACTIVITY
+              </div>
+              <div className="space-y-3">
+                {[
+                  {
+                    title: "Booking created",
+                    meta: `Requested for ${selected.date}`,
+                    tone: "bg-emerald-700",
+                  },
+                  {
+                    title:
+                      selected.status === "confirmed"
+                        ? "Payment confirmed"
+                        : selected.status === "cancelled"
+                        ? "Booking cancelled"
+                        : "Awaiting confirmation",
+                    meta:
+                      selected.status === "confirmed"
+                        ? "Status set to Confirmed"
+                        : selected.status === "cancelled"
+                        ? "Status set to Cancelled"
+                        : "Status is Pending",
+                    tone:
+                      selected.status === "cancelled"
+                        ? "bg-red-600"
+                        : selected.status === "confirmed"
+                        ? "bg-emerald-700"
+                        : "bg-amber-500",
+                  },
+                  {
+                    title: "Review & follow-up",
+                    meta: "Send message or email to finalize details",
+                    tone: "bg-[var(--color-secondary)]",
+                  },
+                ].map((item, idx, arr) => (
+                  <div key={idx} className="relative pl-7">
+                    {idx !== arr.length - 1 ? (
+                      <div className="absolute left-[9px] top-[18px] h-[calc(100%-10px)] w-px bg-emerald-900/10" />
+                    ) : null}
+                    <div
+                      className={`absolute left-0 top-[6px] h-5 w-5 rounded-full ${item.tone}`}
+                    />
+                    <div className="rounded-2xl border border-emerald-900/10 bg-[#f6f8f7] p-3">
+                      <div className="text-sm font-extrabold text-[var(--color-secondary)]">
+                        {item.title}
+                      </div>
+                      <div className="mt-1 text-xs font-semibold text-[var(--muted)]">
+                        {item.meta}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
