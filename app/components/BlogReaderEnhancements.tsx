@@ -62,7 +62,7 @@ export default function BlogReaderEnhancements({
 
   return (
     <div>
-      <div className="fixed left-0 top-[65px] z-60 h-1.5 w-full bg-black/5">
+      <div className="fixed left-0 top-0 z-60 h-1.5 w-full bg-black/5">
         <div
           aria-hidden="true"
           className="h-full rounded-r-full bg-gradient-to-r from-emerald-500 via-green-600 to-lime-500 shadow-[0_0_16px_rgba(16,185,129,0.45)] transition-[width] duration-100 ease-linear"
