@@ -9,9 +9,56 @@ import PartnersSection from "./components/PartnersSection";
 import SingleBlog from "./components/SingleBlog";
 import ContactForm from "./components/ContactForm";
 import Footer from "./components/Footer";
-import { blogPosts, type BlogPost } from "./blogs/blogsData";
+import { prisma } from "@/app/lib/prisma";
+import type { BlogPost } from "./blogs/blogsData";
 
-export default function Home() {
+function deltaToParagraphs(delta: unknown): string[] {
+  const ops = (delta as any)?.ops;
+  if (!Array.isArray(ops)) return [];
+
+  const text = ops
+    .map((op: any) => (typeof op?.insert === "string" ? op.insert : ""))
+    .join("");
+
+  return text
+    .split(/\n+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function excerptFromParagraphs(paragraphs: string[]): string {
+  const joined = paragraphs.join(" ").trim();
+  if (!joined) return "";
+  if (joined.length <= 170) return joined;
+  return `${joined.slice(0, 170).trim()}...`;
+}
+
+export default async function Home() {
+  const packages = await prisma.package.findMany({
+    where: { status: "active" },
+    orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
+    take: 3,
+  });
+
+  const posts = await prisma.blogPost.findMany({
+    where: { status: "published" },
+    orderBy: { updatedAt: "desc" },
+    take: 3,
+  });
+
+  const blogRows: BlogPost[] = posts.map((p: any) => {
+    const paragraphs = deltaToParagraphs(p.content);
+    return {
+      id: p.publicId,
+      title: p.title,
+      excerpt: excerptFromParagraphs(paragraphs),
+      image: p.imageUrl || "/gorila.webp",
+      readTime: p.readTime,
+      category: p.category,
+      content: paragraphs,
+    };
+  });
+
   return (
     <>
       {/* <Header /> */}
@@ -71,9 +118,17 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <SinglePackage />
-          <SinglePackage />
-          <SinglePackage />
+          {packages.map((p) => (
+            <SinglePackage
+              key={p.publicId}
+              id={p.publicId}
+              title={p.title}
+              description={p.description}
+              price={p.price}
+              imageUrl={p.imageUrl}
+              featured={p.featured}
+            />
+          ))}
         </div>
       </main>
 
@@ -183,7 +238,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {blogPosts.map((post) => (
+          {blogRows.map((post) => (
             <SingleBlog key={post.id} post={post} />
           ))}
         </div>

@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { BlogPost } from "../blogs/blogsData";
+import { Clock, Shield } from "lucide-react";
 
 export default function SingleBlog({ post }: { post: BlogPost }) {
   return (
     <article className="card">
-      <img src={post.image} alt={post.title} loading="lazy" />
+      <img src={post.image || "/gorila.webp"} alt={post.title} loading="lazy" />
       <div>
         <h3>{post.title}</h3>
         <p
@@ -19,15 +20,10 @@ export default function SingleBlog({ post }: { post: BlogPost }) {
           {post.excerpt}
         </p>
         <p className="meta">
-          <i
-            className="fas fa-clock"
-            style={{ color: "var(--color-primary)" }}
-          ></i>{" "}
+          <Clock size={14} style={{ color: "var(--color-primary)" }} />{" "}
           {post.readTime} <span style={{ color: "#ccc" }}>•</span>{" "}
-          <i
-            className="fas fa-shield-alt"
-            style={{ color: "var(--color-primary)" }}
-          ></i>{" "}
+          <Shield size={14} style={{ color: "var(--color-primary)" }} />{" "}
+          {post.category}
           {post.category}
         </p>
         <Link href={`/blogs/read/${post.id}`} className="read-more">

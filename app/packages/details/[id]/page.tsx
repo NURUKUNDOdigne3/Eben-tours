@@ -1,20 +1,166 @@
 "use client";
 
 import SectionHeader from "@/app/components/SectionHeader";
-import { useState } from "react";
+import {
+  Calendar,
+  CalendarCheck,
+  Check,
+  CheckCircle,
+  Info,
+  InfoIcon,
+  Mail,
+  Map,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Users2,
+  X,
+  XCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { PhoneInput } from "react-international-phone";
+import { toast } from "sonner";
 
 type TabKey = "itinerary" | "inclusions" | "exclusions" | "info";
 
+type ItineraryItem = {
+  time: string;
+  activity: string;
+  description: string;
+};
+
+type PackageDetailsRow = {
+  id: string;
+  title: string;
+  location: string;
+  durationDays: number;
+  price: number;
+  maxGroup: number;
+  featured: boolean;
+  imageUrl?: string | null;
+  description?: string | null;
+  itinerary: ItineraryItem[];
+  inclusions: string[];
+  exclusions: string[];
+  info: string[];
+};
+
 export default function PackageDetails() {
+  const params = useParams<{ id: string }>();
+  const id = String(params?.id ?? "");
   const [activeTab, setActiveTab] = useState<TabKey>("itinerary");
   const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [travellers, setTravellers] = useState(2);
+  const [travelDate, setTravelDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pkg, setPkg] = useState<PackageDetailsRow | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    if (!id) return;
+    setLoading(true);
+    fetch(`/api/packages/${encodeURIComponent(id)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (!alive) return;
+        setPkg(data?.package ?? null);
+      })
+      .catch(() => {
+        if (!alive) return;
+        setPkg(null);
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+
+  const safePkg = useMemo(() => {
+    if (!pkg)
+      return {
+        id,
+        title: "Package",
+        location: "",
+        durationDays: 1,
+        price: 0,
+        maxGroup: 0,
+        featured: false,
+        imageUrl: null,
+        description: null,
+        itinerary: [] as ItineraryItem[],
+        inclusions: [] as string[],
+        exclusions: [] as string[],
+        info: [] as string[],
+      };
+    return pkg;
+  }, [id, pkg]);
+
+  const durationLabel = `${safePkg.durationDays} Day${
+    safePkg.durationDays === 1 ? "" : "s"
+  }`;
+
+  async function submitBooking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id) return;
+    if (submitting) return;
+    if (!fullName.trim() || !email.trim() || !travelDate) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          packageId: id,
+          name: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          travellers,
+          date: travelDate,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(String(data?.error || "Booking failed"));
+
+      toast.success(
+        `Booking received! Your booking ID is ${String(
+          data?.booking?.id ?? ""
+        )}.`
+      );
+
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setTravellers(2);
+      setTravelDate("");
+    } catch (err: any) {
+      toast.error(String(err?.message || "Booking failed"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <>
       <SectionHeader
-        title="1-Day Canopy Walk Adventure in Nyungwe National Park"
+        title={loading ? "Loading..." : safePkg.title}
         note="Tour Details"
-        description="Embark on an unforgettable journey into Rwanda's lush wilderness with our 1-Day Canopy Walk Adventure in Nyungwe National Park. Departing early from Kigali, we'll take you through Rwanda's scenic landscapes."
+        description={
+          loading
+            ? ""
+            : safePkg.description ||
+              "Discover this tour package and create unforgettable memories."
+        }
       />
 
       <div className="container">
@@ -29,8 +175,8 @@ export default function PackageDetails() {
           }}
         >
           <img
-            src="/canopy_walk.jpg"
-            alt="Canopy Walk"
+            src={safePkg.imageUrl || "/canopy_walk.webp"}
+            alt={safePkg.title}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         </div>
@@ -70,12 +216,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-calendar"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <Calendar size={18} style={{ marginRight: "6px" }} />
                   Duration
                 </div>
                 <div
@@ -85,7 +230,7 @@ export default function PackageDetails() {
                     color: "var(--color-primary)",
                   }}
                 >
-                  1 Day
+                  {durationLabel}
                 </div>
               </div>
 
@@ -106,12 +251,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-map-marker-alt"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <MapPin size={18} style={{ marginRight: "6px" }} />
                   Destination
                 </div>
                 <div
@@ -121,7 +265,7 @@ export default function PackageDetails() {
                     color: "var(--color-primary)",
                   }}
                 >
-                  Rwanda
+                  {safePkg.location || "-"}
                 </div>
               </div>
 
@@ -142,12 +286,11 @@ export default function PackageDetails() {
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
                     marginBottom: "8px",
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  <i
-                    className="fas fa-people-group"
-                    style={{ marginRight: "6px" }}
-                  />
+                  <Users2 size={18} style={{ marginRight: "6px" }} />
                   Min Group
                 </div>
                 <div
@@ -157,7 +300,7 @@ export default function PackageDetails() {
                     color: "var(--color-primary)",
                   }}
                 >
-                  2 People
+                  {safePkg.maxGroup ? `${safePkg.maxGroup} People` : "-"}
                 </div>
               </div>
             </div>
@@ -191,9 +334,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i className="fas fa-map" style={{ marginRight: "8px" }} />
+                <Map size={22} style={{ marginRight: "8px" }} />
                 Itinerary
               </button>
 
@@ -217,12 +362,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-check-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <CheckCircle size={22} style={{ marginRight: "8px" }} />
                 Inclusions
               </button>
 
@@ -246,12 +390,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-times-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <XCircle size={22} style={{ marginRight: "8px" }} />
                 Exclusions
               </button>
 
@@ -275,12 +418,11 @@ export default function PackageDetails() {
                       : "3px solid transparent",
                   fontSize: "15px",
                   transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-info-circle"
-                  style={{ marginRight: "8px" }}
-                />
+                <Info size={22} style={{ marginRight: "8px" }} />
                 Info
               </button>
             </div>
@@ -297,155 +439,67 @@ export default function PackageDetails() {
                   Tour Itinerary
                 </h2>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "24px",
-                    marginBottom: "40px",
-                    position: "relative",
-                    paddingBottom: "40px",
-                    borderBottom: "1px solid rgba(30,86,49,0.1)",
-                  }}
-                >
-                  <div style={{ flexShrink: 0, width: "100px" }}>
+                {safePkg.itinerary.length ? (
+                  safePkg.itinerary.map((item, idx) => (
                     <div
+                      key={`${item.time}-${idx}`}
                       style={{
-                        background: "var(--color-primary)",
-                        color: "#fff",
-                        padding: "12px 16px",
-                        borderRadius: "8px",
-                        fontWeight: 700,
-                        fontSize: "14px",
-                        textAlign: "center",
+                        display: "flex",
+                        gap: "24px",
+                        marginBottom:
+                          idx === safePkg.itinerary.length - 1 ? 0 : "40px",
+                        position: "relative",
+                        paddingBottom:
+                          idx === safePkg.itinerary.length - 1 ? 0 : "40px",
+                        borderBottom:
+                          idx === safePkg.itinerary.length - 1
+                            ? "none"
+                            : "1px solid rgba(30,86,49,0.1)",
                       }}
                     >
-                      04:00 AM
+                      <div style={{ flexShrink: 0, width: "100px" }}>
+                        <div
+                          style={{
+                            background: "var(--color-primary)",
+                            color: "#fff",
+                            padding: "12px 16px",
+                            borderRadius: "8px",
+                            fontWeight: 700,
+                            fontSize: "14px",
+                            textAlign: "center",
+                          }}
+                        >
+                          {item.time || "--"}
+                        </div>
+                      </div>
+                      <div>
+                        <h3
+                          style={{
+                            margin: "0 0 8px",
+                            fontSize: "20px",
+                            color: "var(--color-primary)",
+                            fontFamily: "var(--font-serif)",
+                          }}
+                        >
+                          {item.activity || "Activity"}
+                        </h3>
+                        <p
+                          style={{
+                            color: "var(--muted)",
+                            margin: 0,
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {item.description || ""}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <h3
-                      style={{
-                        margin: "0 0 8px",
-                        fontSize: "20px",
-                        color: "var(--color-primary)",
-                        fontFamily: "var(--font-serif)",
-                      }}
-                    >
-                      Departure to Nyungwe National Park
-                    </h3>
-                    <p
-                      style={{
-                        color: "var(--muted)",
-                        margin: 0,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      Begin your adventure at the break of dawn as we depart
-                      from Kigali, Rwanda's vibrant capital. Settle into our
-                      comfortable vehicle and prepare for a scenic drive through
-                      the breathtaking countryside. Along the way, soak in the
-                      stunning landscapes before arriving at the serene Nyungwe
-                      National Park, where your canopy walk experience awaits.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "24px",
-                    marginBottom: "40px",
-                    position: "relative",
-                    paddingBottom: "40px",
-                    borderBottom: "1px solid rgba(30,86,49,0.1)",
-                  }}
-                >
-                  <div style={{ flexShrink: 0, width: "100px" }}>
-                    <div
-                      style={{
-                        background: "var(--color-primary)",
-                        color: "#fff",
-                        padding: "12px 16px",
-                        borderRadius: "8px",
-                        fontWeight: 700,
-                        fontSize: "14px",
-                        textAlign: "center",
-                      }}
-                    >
-                      10:00 AM
-                    </div>
-                  </div>
-                  <div>
-                    <h3
-                      style={{
-                        margin: "0 0 8px",
-                        fontSize: "20px",
-                        color: "var(--color-primary)",
-                        fontFamily: "var(--font-serif)",
-                      }}
-                    >
-                      Canopy Walk Experience
-                    </h3>
-                    <p
-                      style={{
-                        color: "var(--muted)",
-                        margin: 0,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      Step into the heart of the forest as you embark on a
-                      guided canopy walk. Traverse a series of suspended bridges
-                      swaying gently above the lush treetops. Immerse yourself
-                      in the beauty of Nyungwe's rich biodiversity, spot rare
-                      birds, colorful butterflies, and playful primates as you
-                      explore the vibrant ecosystem.
-                    </p>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: "24px" }}>
-                  <div style={{ flexShrink: 0, width: "100px" }}>
-                    <div
-                      style={{
-                        background: "var(--color-primary)",
-                        color: "#fff",
-                        padding: "12px 16px",
-                        borderRadius: "8px",
-                        fontWeight: 700,
-                        fontSize: "14px",
-                        textAlign: "center",
-                      }}
-                    >
-                      01:00 PM
-                    </div>
-                  </div>
-                  <div>
-                    <h3
-                      style={{
-                        margin: "0 0 8px",
-                        fontSize: "20px",
-                        color: "var(--color-primary)",
-                        fontFamily: "var(--font-serif)",
-                      }}
-                    >
-                      Lunch and Return Journey
-                    </h3>
-                    <p
-                      style={{
-                        color: "var(--muted)",
-                        margin: 0,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      After an exhilarating morning, indulge in a delicious
-                      lunch at the Uwinka Visitor's Center, surrounded by the
-                      tranquility of the park. Recharged and ready for the
-                      return journey, we begin our scenic drive back to Kigali.
-                      Arrive at your hotel by evening with cherished memories
-                      and a heart full of nature's wonders.
-                    </p>
-                  </div>
-                </div>
+                  ))
+                ) : (
+                  <p style={{ color: "var(--muted)", margin: 0 }}>
+                    No itinerary has been published for this package yet.
+                  </p>
+                )}
               </div>
             )}
 
@@ -460,184 +514,54 @@ export default function PackageDetails() {
                 >
                   What's Included
                 </h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr",
-                    gap: "16px",
-                  }}
-                >
+                {safePkg.inclusions.length ? (
                   <div
                     style={{
-                      display: "flex",
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
                       gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid var(--color-primary)",
                     }}
                   >
-                    <i
-                      className="fas fa-check"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
+                    {safePkg.inclusions.map((item, idx) => (
+                      <div
+                        key={`${idx}-${item}`}
                         style={{
-                          margin: "0 0 4px",
-                          color: "var(--color-primary)",
-                          fontWeight: 700,
+                          display: "flex",
+                          gap: "16px",
+                          alignItems: "flex-start",
+                          padding: "20px",
+                          background: "#fff",
+                          borderRadius: "12px",
+                          borderLeft: "4px solid var(--color-primary)",
                         }}
                       >
-                        Professional Guide
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Experienced and knowledgeable tour guide throughout the
-                        journey
-                      </p>
-                    </div>
+                        <Check
+                          style={{
+                            color: "var(--color-primary)",
+                            fontSize: "20px",
+                            marginTop: "2px",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div>
+                          <h4
+                            style={{
+                              margin: 0,
+                              color: "var(--color-primary)",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {item}
+                          </h4>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid var(--color-primary)",
-                    }}
-                  >
-                    <i
-                      className="fas fa-check"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "var(--color-primary)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Transportation
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Comfortable air-conditioned vehicle for the entire
-                        journey
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid var(--color-primary)",
-                    }}
-                  >
-                    <i
-                      className="fas fa-check"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "var(--color-primary)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Park Entrance Fee
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Access to Nyungwe National Park and canopy walk
-                        facilities
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid var(--color-primary)",
-                    }}
-                  >
-                    <i
-                      className="fas fa-check"
-                      style={{
-                        color: "var(--color-primary)",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "var(--color-primary)",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Lunch & Beverages
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Delicious lunch and refreshing non-alcoholic beverages
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <p style={{ color: "var(--muted)", margin: 0 }}>
+                    No inclusions have been published for this package yet.
+                  </p>
+                )}
               </div>
             )}
 
@@ -652,227 +576,54 @@ export default function PackageDetails() {
                 >
                   What's Not Included
                 </h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr",
-                    gap: "16px",
-                  }}
-                >
+                {safePkg.exclusions.length ? (
                   <div
                     style={{
-                      display: "flex",
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
                       gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid #d32f2f",
                     }}
                   >
-                    <i
-                      className="fas fa-times"
-                      style={{
-                        color: "#d32f2f",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
+                    {safePkg.exclusions.map((item, idx) => (
+                      <div
+                        key={`${idx}-${item}`}
                         style={{
-                          margin: "0 0 4px",
-                          color: "#d32f2f",
-                          fontWeight: 700,
+                          display: "flex",
+                          gap: "16px",
+                          alignItems: "flex-start",
+                          padding: "20px",
+                          background: "#fff",
+                          borderRadius: "12px",
+                          borderLeft: "4px solid #d32f2f",
                         }}
                       >
-                        Alcoholic Beverages
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Any alcoholic drinks are not included and available for
-                        purchase
-                      </p>
-                    </div>
+                        <X
+                          style={{
+                            color: "#d32f2f",
+                            fontSize: "20px",
+                            marginTop: "2px",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div>
+                          <h4
+                            style={{
+                              margin: 0,
+                              color: "#d32f2f",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {item}
+                          </h4>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid #d32f2f",
-                    }}
-                  >
-                    <i
-                      className="fas fa-times"
-                      style={{
-                        color: "#d32f2f",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "#d32f2f",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Personal Travel Insurance
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Travel and health insurance are the responsibility of
-                        the traveler
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid #d32f2f",
-                    }}
-                  >
-                    <i
-                      className="fas fa-times"
-                      style={{
-                        color: "#d32f2f",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "#d32f2f",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Accommodation
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Hotel accommodation not included. This is a day trip
-                        only
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid #d32f2f",
-                    }}
-                  >
-                    <i
-                      className="fas fa-times"
-                      style={{
-                        color: "#d32f2f",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "#d32f2f",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Optional Activities
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Any additional activities or upgrades not mentioned in
-                        the itinerary
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "16px",
-                      alignItems: "flex-start",
-                      padding: "20px",
-                      background: "#fff",
-                      borderRadius: "12px",
-                      borderLeft: "4px solid #d32f2f",
-                    }}
-                  >
-                    <i
-                      className="fas fa-times"
-                      style={{
-                        color: "#d32f2f",
-                        fontSize: "20px",
-                        marginTop: "2px",
-                        flexShrink: 0,
-                      }}
-                    />
-                    <div>
-                      <h4
-                        style={{
-                          margin: "0 0 4px",
-                          color: "#d32f2f",
-                          fontWeight: 700,
-                        }}
-                      >
-                        Personal Expenses
-                      </h4>
-                      <p
-                        style={{
-                          margin: 0,
-                          color: "var(--muted)",
-                          fontSize: "14px",
-                        }}
-                      >
-                        Souvenirs, tips, and other personal expenses
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                ) : (
+                  <p style={{ color: "var(--muted)", margin: 0 }}>
+                    No exclusions have been published for this package yet.
+                  </p>
+                )}
               </div>
             )}
 
@@ -887,93 +638,46 @@ export default function PackageDetails() {
                 >
                   Essential Information
                 </h2>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr",
-                    gap: "20px",
-                  }}
-                >
-                  <div>
-                    <h4
-                      style={{
-                        margin: "0 0 12px",
-                        color: "var(--color-primary)",
-                        fontWeight: 700,
-                        fontSize: "16px",
-                      }}
-                    >
-                      <i
-                        className="fas fa-backpack"
-                        style={{ marginRight: "8px" }}
-                      />
-                      What to Bring
-                    </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "var(--muted)",
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      Comfortable walking shoes, light clothing, sunscreen, hat,
-                      insect repellent, camera, and a refillable water bottle.
-                    </p>
+                {safePkg.info.length ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr",
+                      gap: "20px",
+                    }}
+                  >
+                    {safePkg.info.map((item, idx) => (
+                      <div key={`${idx}-${item}`}>
+                        <h4
+                          style={{
+                            margin: "0 0 12px",
+                            color: "var(--color-primary)",
+                            fontWeight: 700,
+                            fontSize: "16px",
+                            display: "flex",
+                            alignItems: "center",
+                          }}
+                        >
+                          <InfoIcon size={20} style={{ marginRight: "8px" }} />
+                          Info
+                        </h4>
+                        <p
+                          style={{
+                            margin: 0,
+                            color: "var(--muted)",
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {item}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <h4
-                      style={{
-                        margin: "0 0 12px",
-                        color: "var(--color-primary)",
-                        fontWeight: 700,
-                        fontSize: "16px",
-                      }}
-                    >
-                      <i
-                        className="fas fa-person-hiking"
-                        style={{ marginRight: "8px" }}
-                      />
-                      Physical Requirements
-                    </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "var(--muted)",
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      Moderate fitness level required. The canopy walk involves
-                      walking across suspended bridges at heights up to 50
-                      meters.
-                    </p>
-                  </div>
-                  <div>
-                    <h4
-                      style={{
-                        margin: "0 0 12px",
-                        color: "var(--color-primary)",
-                        fontWeight: 700,
-                        fontSize: "16px",
-                      }}
-                    >
-                      <i
-                        className="fas fa-calendar-check"
-                        style={{ marginRight: "8px" }}
-                      />
-                      Best Time to Visit
-                    </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        color: "var(--muted)",
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      Year-round destination, but best visited during dry
-                      seasons: January-February and September-October.
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <p style={{ color: "var(--muted)", margin: 0 }}>
+                    No additional info has been published for this package yet.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1008,7 +712,7 @@ export default function PackageDetails() {
                     margin: 0,
                   }}
                 >
-                  $450
+                  ${safePkg.price.toFixed(0)}
                 </div>
                 <p
                   style={{
@@ -1031,7 +735,7 @@ export default function PackageDetails() {
               />
 
               <form
-                onSubmit={(e) => e.preventDefault()}
+                onSubmit={submitBooking}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -1056,6 +760,8 @@ export default function PackageDetails() {
                     type="text"
                     required
                     placeholder="John Rambo"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -1086,6 +792,8 @@ export default function PackageDetails() {
                     type="email"
                     required
                     placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -1153,7 +861,8 @@ export default function PackageDetails() {
                     required
                     min={2}
                     max={20}
-                    defaultValue={2}
+                    value={travellers}
+                    onChange={(e) => setTravellers(Number(e.target.value))}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -1183,6 +892,8 @@ export default function PackageDetails() {
                   <input
                     type="date"
                     required
+                    value={travelDate}
+                    onChange={(e) => setTravelDate(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -1212,7 +923,9 @@ export default function PackageDetails() {
                     }}
                   >
                     Total:{" "}
-                    <span style={{ color: "var(--color-primary)" }}>$450</span>
+                    <span style={{ color: "var(--color-primary)" }}>
+                      ${safePkg.price.toFixed(0)}
+                    </span>
                   </p>
                   <p
                     style={{
@@ -1227,6 +940,7 @@ export default function PackageDetails() {
 
                 <button
                   type="submit"
+                  disabled={submitting}
                   style={{
                     padding: "16px",
                     background:
@@ -1236,20 +950,22 @@ export default function PackageDetails() {
                     borderRadius: "10px",
                     fontWeight: 700,
                     fontSize: "15px",
-                    cursor: "pointer",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    opacity: submitting ? 0.8 : 1,
                     transition: "all 0.3s ease",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <i
-                    className="fas fa-calendar-check"
-                    style={{ marginRight: "8px" }}
-                  />
-                  Book Now
+                  <CalendarCheck style={{ marginRight: "8px" }} />
+                  {submitting ? "Submitting..." : "Book Now"}
+                  <span className="invisible" />
                 </button>
 
-                <a
+                <Link
                   href="https://wa.me/+250786140897"
                   target="_blank"
                   rel="noreferrer"
@@ -1265,14 +981,15 @@ export default function PackageDetails() {
                     transition: "all 0.3s ease",
                     textDecoration: "none",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  <i
-                    className="fab fa-whatsapp"
-                    style={{ marginRight: "8px" }}
-                  />
+                  <MessageCircle style={{ marginRight: "8px" }} />
                   Chat on WhatsApp
-                </a>
+                  <span className="invisible" />
+                </Link>
               </form>
             </div>
 
@@ -1309,7 +1026,7 @@ export default function PackageDetails() {
                   transition: "all 0.3s ease",
                 }}
               >
-                <i className="fas fa-phone" style={{ fontSize: "16px" }} />
+                <Phone style={{ fontSize: "16px" }} />
                 (+250) 786 140 897
               </a>
               <a
@@ -1325,7 +1042,7 @@ export default function PackageDetails() {
                   transition: "all 0.3s ease",
                 }}
               >
-                <i className="fas fa-envelope" style={{ fontSize: "16px" }} />
+                <Mail style={{ fontSize: "16px" }} />
                 administration@ebenconnections.com
               </a>
             </div>

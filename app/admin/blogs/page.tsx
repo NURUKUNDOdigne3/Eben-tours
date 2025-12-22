@@ -1,7 +1,8 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { useCallback, useMemo, useState } from "react";
+import axios from "axios";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminConfirmModal from "@/app/components/admin/AdminConfirmModal";
 import AdminDataTable from "@/app/components/admin/table/AdminDataTable";
 import AdminDrawer from "@/app/components/admin/AdminDrawer";
@@ -17,52 +18,12 @@ type BlogRow = {
   title: string;
   category: string;
   author: string;
+  imageUrl?: string | null;
   status: PostStatus;
   readTime: string;
   updatedAt: string;
   content: QuillDelta;
 };
-
-const seedPosts: BlogRow[] = [
-  {
-    id: "BLG-2001",
-    title: "Top 7 Experiences in Rwanda",
-    category: "Travel Guides",
-    author: "Admin",
-    status: "published",
-    readTime: "6 min",
-    updatedAt: "2025-12-12",
-    content: {
-      ops: [
-        { insert: "Top 7 Experiences in Rwanda\n" },
-        { attributes: { header: 2 }, insert: "\n" },
-        {
-          insert:
-            "Write a short intro, then list the experiences with images and tips.\n",
-        },
-      ],
-    },
-  },
-  {
-    id: "BLG-2002",
-    title: "How to Prepare for Gorilla Trekking",
-    category: "Adventure",
-    author: "Admin",
-    status: "draft",
-    readTime: "8 min",
-    updatedAt: "2025-12-18",
-    content: {
-      ops: [
-        { insert: "How to Prepare for Gorilla Trekking\n" },
-        { attributes: { header: 2 }, insert: "\n" },
-        {
-          insert:
-            "Add essentials: clothing, fitness, permits, camera tips, and timing.\n",
-        },
-      ],
-    },
-  },
-];
 
 function StatusBadge({ status }: { status: PostStatus }) {
   const styles =
@@ -79,18 +40,36 @@ function StatusBadge({ status }: { status: PostStatus }) {
   );
 }
 
-function newId(prefix: string) {
-  return `${prefix}-${Math.floor(1000 + Math.random() * 9000)}`;
-}
-
 export default function AdminBlogsPage() {
   const { pushActivity, pushAudit, pushNotification } = useAdminOps();
-  const [rows, setRows] = useState<BlogRow[]>(seedPosts);
+  const [rows, setRows] = useState<BlogRow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
   const [toast, setToast] = useState<null | string>(null);
+
+  const fetchRows = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/admin/blogs");
+      setRows((res.data?.rows ?? []) as BlogRow[]);
+    } catch (err: any) {
+      setToast("Failed to load posts");
+      window.setTimeout(() => setToast(null), 1800);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchRows();
+  }, [fetchRows]);
 
   const editing = useMemo(
     () => rows.find((r) => r.id === editingId) ?? null,
@@ -101,6 +80,7 @@ export default function AdminBlogsPage() {
   const [draftCategory, setDraftCategory] = useState("Travel Guides");
   const [draftStatus, setDraftStatus] = useState<PostStatus>("draft");
   const [draftReadTime, setDraftReadTime] = useState("6 min");
+  const [draftImageUrl, setDraftImageUrl] = useState<string>("");
   const [draftContent, setDraftContent] = useState<QuillDelta>({
     ops: [{ insert: "\n" }],
   });
@@ -111,6 +91,7 @@ export default function AdminBlogsPage() {
     setDraftCategory("Travel Guides");
     setDraftStatus("draft");
     setDraftReadTime("6 min");
+    setDraftImageUrl("");
     setDraftContent({ ops: [{ insert: "\n" }] });
     setDrawerOpen(true);
   }, []);
@@ -124,62 +105,132 @@ export default function AdminBlogsPage() {
       setDraftCategory(post.category);
       setDraftStatus(post.status);
       setDraftReadTime(post.readTime);
+      setDraftImageUrl(typeof post.imageUrl === "string" ? post.imageUrl : "");
       setDraftContent(post.content);
       setDrawerOpen(true);
     },
     [rows]
   );
 
+  const uploadImage = useCallback(
+    async (file: File) => {
+      if (uploadingImage) return;
+      setUploadingImage(true);
+      try {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const sigRes = await fetch(
+          `/api/admin/cloudinary-signature?timestamp=${timestamp}`
+        );
+        const sigData = await sigRes.json();
+        if (!sigRes.ok)
+          throw new Error(sigData?.error || "Failed to sign upload");
+
+        const cloudName = String(sigData.cloudName || "");
+        const apiKey = String(sigData.apiKey || "");
+        const signature = String(sigData.signature || "");
+        const folder = String(sigData.folder || "");
+
+        if (!cloudName || !apiKey || !signature)
+          throw new Error("Cloudinary is not configured");
+
+        const form = new FormData();
+        form.append("file", file);
+        form.append("api_key", apiKey);
+        form.append("timestamp", String(timestamp));
+        form.append("signature", signature);
+        if (folder) form.append("folder", folder);
+
+        const uploadRes = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          {
+            method: "POST",
+            body: form,
+          }
+        );
+        const uploadText = await uploadRes.text();
+        const uploadData = (() => {
+          try {
+            return JSON.parse(uploadText);
+          } catch {
+            return null;
+          }
+        })();
+
+        if (!uploadRes.ok) {
+          const msg =
+            (uploadData as any)?.error?.message ||
+            (typeof uploadText === "string" && uploadText.trim()
+              ? uploadText.trim()
+              : "Upload failed");
+          throw new Error(msg);
+        }
+
+        const secureUrl = String(uploadData?.secure_url || "");
+        if (!secureUrl) throw new Error("Upload failed");
+
+        setDraftImageUrl(secureUrl);
+      } catch (err: any) {
+        setToast(err?.message || "Failed to upload image");
+        window.setTimeout(() => setToast(null), 1800);
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [uploadingImage]
+  );
+
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
   }, []);
 
-  const savePost = useCallback(() => {
+  const savePost = useCallback(async () => {
+    if (saving) return;
     if (!draftTitle.trim()) return;
 
-    const now = new Date().toISOString().slice(0, 10);
     const time = "Just now";
-    const idValue = editingId ?? newId("BLG");
 
-    setRows((prev) => {
+    setSaving(true);
+
+    try {
       if (!editingId) {
-        const created: BlogRow = {
-          id: idValue,
+        await axios.post("/api/admin/blogs", {
           title: draftTitle.trim(),
           category: draftCategory,
           author: "Admin",
+          imageUrl: draftImageUrl.trim() || null,
           status: draftStatus,
           readTime: draftReadTime,
-          updatedAt: now,
           content: draftContent,
-        };
-        return [created, ...prev];
+        });
+      } else {
+        await axios.patch(`/api/admin/blogs/${editingId}`, {
+          title: draftTitle.trim(),
+          category: draftCategory,
+          author: "Admin",
+          imageUrl: draftImageUrl.trim() || null,
+          status: draftStatus,
+          readTime: draftReadTime,
+          content: draftContent,
+        });
       }
 
-      return prev.map((r) =>
-        r.id === editingId
-          ? {
-              ...r,
-              title: draftTitle.trim(),
-              category: draftCategory,
-              status: draftStatus,
-              readTime: draftReadTime,
-              updatedAt: now,
-              content: draftContent,
-            }
-          : r
-      );
-    });
-
-    setToast(editingId ? "Post updated" : "Draft saved");
-    window.setTimeout(() => setToast(null), 1800);
-    setDrawerOpen(false);
+      await fetchRows();
+      setToast(editingId ? "Post updated" : "Draft saved");
+      window.setTimeout(() => setToast(null), 1800);
+      setDrawerOpen(false);
+    } catch (err: any) {
+      setToast("Failed to save post");
+      window.setTimeout(() => setToast(null), 1800);
+      return;
+    } finally {
+      setSaving(false);
+    }
 
     pushAudit({
       entity: "blog",
       action: editingId ? "update" : "create",
       actor: "Fab",
-      summary: `${idValue} ${
+      summary: `${editingId ?? "New post"} ${
         editingId ? "updated" : "created"
       }: ${draftTitle.trim()}`,
       time,
@@ -202,35 +253,39 @@ export default function AdminBlogsPage() {
   }, [
     draftCategory,
     draftContent,
+    draftImageUrl,
     draftReadTime,
     draftStatus,
     draftTitle,
     editingId,
+    fetchRows,
     pushActivity,
     pushAudit,
     pushNotification,
+    saving,
   ]);
 
   const togglePublish = useCallback(
-    (id: string) => {
-      const now = new Date().toISOString().slice(0, 10);
+    async (id: string) => {
+      if (togglingId) return;
       const time = "Just now";
       const post = rows.find((r) => r.id === id);
       const current = post?.status ?? "draft";
       const next = current === "published" ? "draft" : "published";
-      setRows((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                status: next,
-                updatedAt: now,
-              }
-            : r
-        )
-      );
-      setToast("Status updated");
-      window.setTimeout(() => setToast(null), 1800);
+
+      try {
+        setTogglingId(id);
+        await axios.patch(`/api/admin/blogs/${id}`, { status: next });
+        await fetchRows();
+        setToast("Status updated");
+        window.setTimeout(() => setToast(null), 1800);
+      } catch (err: any) {
+        setToast("Failed to update status");
+        window.setTimeout(() => setToast(null), 1800);
+        return;
+      } finally {
+        setTogglingId(null);
+      }
 
       pushAudit({
         entity: "blog",
@@ -257,7 +312,7 @@ export default function AdminBlogsPage() {
         href: "/admin/blogs",
       });
     },
-    [pushActivity, pushAudit, pushNotification, rows]
+    [fetchRows, pushActivity, pushAudit, pushNotification, rows, togglingId]
   );
 
   const openDelete = useCallback((id: string) => {
@@ -270,14 +325,26 @@ export default function AdminBlogsPage() {
     setConfirmTargetId(null);
   }, []);
 
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (!confirmTargetId) return;
+    if (deletingId) return;
     const time = "Just now";
     const deleted = rows.find((r) => r.id === confirmTargetId);
-    setRows((prev) => prev.filter((r) => r.id !== confirmTargetId));
-    setToast("Post deleted");
-    window.setTimeout(() => setToast(null), 1800);
-    closeDelete();
+
+    try {
+      setDeletingId(confirmTargetId);
+      await axios.delete(`/api/admin/blogs/${confirmTargetId}`);
+      await fetchRows();
+      setToast("Post deleted");
+      window.setTimeout(() => setToast(null), 1800);
+      closeDelete();
+    } catch (err: any) {
+      setToast("Failed to delete post");
+      window.setTimeout(() => setToast(null), 1800);
+      return;
+    } finally {
+      setDeletingId(null);
+    }
 
     pushAudit({
       entity: "blog",
@@ -306,6 +373,8 @@ export default function AdminBlogsPage() {
   }, [
     closeDelete,
     confirmTargetId,
+    deletingId,
+    fetchRows,
     pushActivity,
     pushAudit,
     pushNotification,
@@ -362,17 +431,23 @@ export default function AdminBlogsPage() {
             <button
               type="button"
               onClick={() => togglePublish(row.original.id)}
+              disabled={Boolean(togglingId) || Boolean(deletingId) || loading}
               className={
                 row.original.status === "published"
                   ? "rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-emerald-700 hover:bg-emerald-50"
                   : "rounded-xl bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
               }
             >
-              {row.original.status === "published" ? "Unpublish" : "Publish"}
+              {togglingId === row.original.id
+                ? "Updating..."
+                : row.original.status === "published"
+                ? "Unpublish"
+                : "Publish"}
             </button>
             <button
               type="button"
               onClick={() => openEdit(row.original.id)}
+              disabled={Boolean(togglingId) || Boolean(deletingId) || loading}
               className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
             >
               Edit
@@ -380,15 +455,16 @@ export default function AdminBlogsPage() {
             <button
               type="button"
               onClick={() => openDelete(row.original.id)}
+              disabled={Boolean(togglingId) || Boolean(deletingId) || loading}
               className="rounded-xl border border-red-900/10 bg-white px-3 py-2 text-xs font-extrabold text-red-700 hover:bg-red-50"
             >
-              Delete
+              {deletingId === row.original.id ? "Deleting..." : "Delete"}
             </button>
           </div>
         ),
       },
     ],
-    [openDelete, openEdit, togglePublish]
+    [deletingId, loading, openDelete, openEdit, togglePublish, togglingId]
   );
 
   return (
@@ -401,7 +477,7 @@ export default function AdminBlogsPage() {
         variant="danger"
         onClose={closeDelete}
         onConfirm={confirmDelete}
-        footerNote="Mock action (UI state only)."
+        footerNote="This action cannot be undone."
       />
 
       <AdminDrawer
@@ -426,6 +502,44 @@ export default function AdminBlogsPage() {
                   className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
                 />
               </label>
+
+              <div className="grid grid-cols-1! gap-2!">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-extrabold text-[var(--muted)]">
+                    Cover image
+                  </span>
+                  <label className="cursor-pointer rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50">
+                    {uploadingImage ? "Uploading..." : "Upload"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={uploadingImage}
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (!f) return;
+                        void uploadImage(f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+                <input
+                  value={draftImageUrl}
+                  onChange={(e) => setDraftImageUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
+                />
+                {draftImageUrl ? (
+                  <div className="overflow-hidden rounded-xl border border-emerald-900/10 bg-[#f6f8f7]">
+                    <img
+                      src={draftImageUrl}
+                      alt="Blog"
+                      className="h-40 w-full object-cover"
+                    />
+                  </div>
+                ) : null}
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2!">
                 <label className="grid-cols-1! gap-1!">
@@ -488,6 +602,7 @@ export default function AdminBlogsPage() {
             <button
               type="button"
               onClick={closeDrawer}
+              disabled={saving}
               className="rounded-xl border border-emerald-900/10 bg-white px-4 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
             >
               Cancel
@@ -495,9 +610,10 @@ export default function AdminBlogsPage() {
             <button
               type="button"
               onClick={savePost}
+              disabled={saving}
               className="rounded-xl bg-[var(--color-secondary)] px-4 py-2 text-xs font-extrabold text-white hover:opacity-90"
             >
-              {editing ? "Save changes" : "Save draft"}
+              {saving ? "Saving..." : editing ? "Save changes" : "Save draft"}
             </button>
           </div>
 
@@ -522,6 +638,9 @@ export default function AdminBlogsPage() {
           <button
             type="button"
             onClick={openCreate}
+            disabled={
+              loading || saving || Boolean(togglingId) || Boolean(deletingId)
+            }
             className="rounded-xl bg-[var(--color-secondary)] px-4 py-2 text-xs font-extrabold text-white hover:opacity-90"
           >
             New post
@@ -561,6 +680,7 @@ export default function AdminBlogsPage() {
             columns={columns}
             searchPlaceholder="Search posts by title or category..."
             pageSize={8}
+            loading={loading}
             getRowId={(row) => (row as BlogRow).id}
             renderToolbar={(table) => {
               const statusCol = table.getColumn("status");

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navItems: Array<{
   label: string;
@@ -7,18 +10,24 @@ const navItems: Array<{
     | "dashboard"
     | "bookings"
     | "packages"
+    | "hero"
     | "blogs"
+    | "emails"
     | "customers"
     | "revenue"
+    | "audit"
     | "settings";
 }> = [
   { label: "Dashboard", href: "/admin", icon: "dashboard" },
   { label: "Bookings", href: "/admin/bookings", icon: "bookings" },
   { label: "Packages", href: "/admin/packages", icon: "packages" },
+  { label: "Hero Media", href: "/admin/hero-media", icon: "hero" },
   { label: "Blogs", href: "/admin/blogs", icon: "blogs" },
+  { label: "Emails", href: "/admin/emails", icon: "emails" },
   { label: "Customers", href: "/admin/customers", icon: "customers" },
   { label: "Revenue", href: "/admin/revenue", icon: "revenue" },
-  { label: "Settings", href: "/admin/settings", icon: "settings" },
+  { label: "Audit", href: "/admin/audit", icon: "audit" },
+  // { label: "Settings", href: "/admin/settings", icon: "settings" },
 ];
 
 function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
@@ -34,6 +43,36 @@ function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
       >
         <path
           d="M4 13h7V4H4v9Zm9 7h7V11h-7v9ZM4 20h7v-5H4v5Zm9-11h7V4h-7v5Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+
+  if (name === "emails")
+    return (
+      <svg
+        className={common}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 4-8 5L4 8V6l8 5 8-5v2Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+
+  if (name === "hero")
+    return (
+      <svg
+        className={common}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6Zm2 0v12h12V6H6Zm3 3h2v2H9V9Zm0 4h6v2H9v-2Z"
           fill="currentColor"
         />
       </svg>
@@ -114,6 +153,21 @@ function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
       </svg>
     );
 
+  if (name === "audit")
+    return (
+      <svg
+        className={common}
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 1a9 9 0 1 0 9 9c0-1.1-.2-2.15-.56-3.13l-1.74 1.01c.2.66.3 1.37.3 2.12a7 7 0 1 1-7-7c1.1 0 2.12.25 3.03.7l1-1.73A8.95 8.95 0 0 0 12 1Zm7.59 3.17-8.2 8.2-2.98-2.98-1.41 1.41 4.39 4.39 9.61-9.61-1.41-1.41Z"
+          fill="currentColor"
+        />
+      </svg>
+    );
+
   return (
     <svg
       className={common}
@@ -130,6 +184,14 @@ function Icon({ name }: { name: (typeof navItems)[number]["icon"] }) {
 }
 
 export default function AdminSidebar() {
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/admin") return pathname === "/admin";
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
   return (
     <aside className="fixed left-0 top-0 hidden h-screen w-[260px] shrink-0 overflow-y-auto border-r border-emerald-900/10 bg-white px-4 py-6 lg:block">
       <div className="mb-6">
@@ -142,31 +204,34 @@ export default function AdminSidebar() {
       </div>
 
       <nav className="space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={
-              item.href === "/admin"
-                ? "flex items-center gap-3 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-extrabold text-white"
-                : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
-            }
-          >
-            <span
-              className={
-                item.href === "/admin"
-                  ? "text-white"
-                  : "text-[var(--color-primary)]"
-              }
-            >
-              <Icon name={item.icon} />
-            </span>
-            {item.label}
-          </Link>
-        ))}
+        {navItems.map((item) =>
+          (() => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={
+                  active
+                    ? "flex items-center gap-3 rounded-xl bg-[var(--color-primary)] px-3 py-2 text-sm font-extrabold text-white!"
+                    : "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                }
+              >
+                <span
+                  className={
+                    active ? "text-white!" : "text-[var(--color-primary)]"
+                  }
+                >
+                  <Icon name={item.icon} />
+                </span>
+                {item.label}
+              </Link>
+            );
+          })()
+        )}
       </nav>
 
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <button
           type="button"
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
@@ -187,7 +252,7 @@ export default function AdminSidebar() {
           </span>
           Logout
         </button>
-      </div>
+      </div> */}
     </aside>
   );
 }

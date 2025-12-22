@@ -1,3 +1,4 @@
+import { Plane } from "lucide-react";
 import DestinationCard from "../components/DestinationCard";
 import SectionHeader from "../components/SectionHeader";
 
@@ -15,33 +16,33 @@ export default function DestinationPage() {
           title="Rwanda"
           isFeatured={true}
           flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
+          bg="/gorila.webp"
           peakSeason="Jun-Sep"
-          description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
+          description="Mountain gorillas, lush landscapes, and the vibrant culture of the Land of a Thousand Hills"
         />
         <DestinationCard
-          title="Rwanda"
+          title="Kenya"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
-          peakSeason="Jun-Sep"
-          description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
+          flag="https://flagcdn.com/w40/ke.png"
+          bg="/lion.webp"
+          peakSeason="Jul-Oct"
+          description="Safari adventures in the Maasai Mara, encounter the Big Five and experience authentic African wildlife."
         />
         <DestinationCard
-          title="Rwanda"
+          title="Uganda"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
-          peakSeason="Jun-Sep"
-          description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
+          flag="https://flagcdn.com/w40/ug.png"
+          bg="/cro.webp"
+          peakSeason="Jun-Aug"
+          description="The Pearl of Africa with pristine forests, mountain gorillas, and the majestic Nile River"
         />
         <DestinationCard
-          title="Rwanda"
+          title="Tanzania"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/rw.png"
-          bg="/gorila.jpg"
-          peakSeason="Jun-Sep"
-          description="Mountain gorillas, lush landscapes, and the vibrant culture of the "
+          flag="https://flagcdn.com/w40/tz.png"
+          bg="/mountain.webp"
+          peakSeason="Jan-Feb"
+          description="Climb Africa's highest peak, witness the Serengeti migration, and explore Zanzibar's spice islands."
         />
       </div>
 
@@ -95,7 +96,7 @@ export default function DestinationPage() {
             border: "1px solid rgba(255, 255, 255, 0.3)",
           }}
         >
-          <i className="fas fa-plane"></i> Book Your Journey Today
+          <Plane /> Book Your Journey Today
         </a>
       </div>
     </>

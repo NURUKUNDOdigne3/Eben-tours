@@ -30,28 +30,28 @@ export default function DestinationSection() {
     <section className={styles.destins} id="destins">
       <div className={styles["destins-container"]}>
         <div className={`${styles["destination-card"]} ${styles["fade-in"]}`}>
-          <img src="/cro.jpg" alt="Rwanda" />
+          <img src="/cro.webp" alt="Rwanda" />
           <div className={styles["glass-overlay"]}>
             <h3>Rwanda</h3>
           </div>
         </div>
 
         <div className={`${styles["destination-card"]} ${styles["fade-in"]}`}>
-          <img src="/gorila.jpg" alt="Uganda" />
+          <img src="/gorila.webp" alt="Uganda" />
           <div className={styles["glass-overlay"]}>
             <h3>Uganda</h3>
           </div>
         </div>
 
         <div className={`${styles["destination-card"]} ${styles["fade-in"]}`}>
-          <img src="/mountain.jpg" alt="Tanzania" />
+          <img src="/mountain.webp" alt="Tanzania" />
           <div className={styles["glass-overlay"]}>
             <h3>Tanzania</h3>
           </div>
         </div>
 
         <div className={`${styles["destination-card"]} ${styles["fade-in"]}`}>
-          <img src="/lion.jpg" alt="Kenya" />
+          <img src="/lion.webp" alt="Kenya" />
           <div className={styles["glass-overlay"]}>
             <h3>Kenya</h3>
           </div>

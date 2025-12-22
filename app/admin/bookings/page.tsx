@@ -4,8 +4,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import AdminDataTable from "@/app/components/admin/table/AdminDataTable";
 import AdminDrawer from "@/app/components/admin/AdminDrawer";
 import AdminConfirmModal from "@/app/components/admin/AdminConfirmModal";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdminOps } from "@/app/components/admin/AdminOpsProvider";
+import { exportBrandedXlsx } from "@/app/components/admin/export/brandedXlsx";
+import axios from "axios";
 
 type BookingStatus = "pending" | "confirmed" | "cancelled";
 
@@ -19,53 +21,15 @@ type BookingRow = {
   status: BookingStatus;
 };
 
-const bookings: BookingRow[] = [
-  {
-    id: "BK-1024",
-    customer: "Aline M.",
-    packageName: "Volcano & Gorilla Trekking",
-    date: "2025-01-12",
-    travellers: 2,
-    amount: 650,
-    status: "confirmed",
-  },
-  {
-    id: "BK-1025",
-    customer: "John K.",
-    packageName: "Akagera Big Five Safari",
-    date: "2025-01-15",
-    travellers: 4,
-    amount: 480,
-    status: "pending",
-  },
-  {
-    id: "BK-1026",
-    customer: "Fatima S.",
-    packageName: "Nyungwe Chimpanzee Trek",
-    date: "2025-01-20",
-    travellers: 1,
-    amount: 420,
-    status: "cancelled",
-  },
-  {
-    id: "BK-1027",
-    customer: "Moses T.",
-    packageName: "Volcano & Gorilla Trekking",
-    date: "2025-02-03",
-    travellers: 3,
-    amount: 650,
-    status: "confirmed",
-  },
-  {
-    id: "BK-1028",
-    customer: "Grace N.",
-    packageName: "Akagera Big Five Safari",
-    date: "2025-02-07",
-    travellers: 2,
-    amount: 480,
-    status: "pending",
-  },
-];
+type BookingExportRow = {
+  booking_id: string;
+  customer: string;
+  package: string;
+  date: string;
+  travellers: number;
+  amount: number;
+  status: BookingStatus;
+};
 
 function StatusBadge({ status }: { status: BookingStatus }) {
   const styles =
@@ -88,7 +52,12 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 
 export default function AdminBookingsPage() {
   const { pushActivity, pushAudit, pushNotification } = useAdminOps();
-  const [rows, setRows] = useState<BookingRow[]>(bookings);
+  const [rows, setRows] = useState<BookingRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState<null | "csv" | "xlsx">(null);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [copied, setCopied] = useState<null | "copied" | "failed">(null);
@@ -107,10 +76,64 @@ export default function AdminBookingsPage() {
     [rows, selectedId]
   );
 
+  const fetchRows = useCallback(async () => {
+    const res = await axios.get<{ rows: BookingRow[] }>("/api/admin/bookings");
+    setRows(res.data.rows);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true);
+    fetchRows()
+      .catch(() => {
+        // ignore for now; Clerk middleware handles redirect
+      })
+      .finally(() => {
+        if (!alive) return;
+        setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [fetchRows]);
+
   const openDrawer = useCallback((id: string) => {
     setSelectedId(id);
     setDrawerOpen(true);
   }, []);
+
+  const printBookingForm = useCallback(
+    (id: string) => {
+      const time = "Just now";
+      pushAudit({
+        entity: "booking",
+        // @ts-ignore
+        action: "print",
+        actor: "Fab",
+        summary: `Printed booking form for ${id}`,
+        time,
+        href: `/admin/bookings/print/${id}`,
+      });
+      pushActivity({
+        title: "Booking form printed",
+        meta: `${id} • Print booking form`,
+        time,
+        tone: "blue",
+        href: `/admin/bookings/print/${id}`,
+      });
+      pushNotification({
+        type: "booking",
+        title: "Booking form printed",
+        body: `Booking form opened for ${id}`,
+        time,
+        href: `/admin/bookings/print/${id}`,
+      });
+
+      const url = `/admin/bookings/print/${id}?auto=1`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    [pushActivity, pushAudit, pushNotification]
+  );
 
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
@@ -132,11 +155,20 @@ export default function AdminBookingsPage() {
   }, [selected]);
 
   const setStatus = useCallback(
-    (status: BookingStatus) => {
+    async (status: BookingStatus) => {
       if (!selected) return;
-      setRows((prev) =>
-        prev.map((r) => (r.id === selected.id ? { ...r, status } : r))
-      );
+      if (statusUpdating) return;
+
+      setStatusUpdating(true);
+      try {
+        await axios.patch(`/api/admin/bookings/${selected.id}`, { status });
+        await fetchRows();
+      } catch {
+        // ignore
+        return;
+      } finally {
+        setStatusUpdating(false);
+      }
 
       const time = "Just now";
       const label = status[0].toUpperCase() + status.slice(1);
@@ -168,7 +200,14 @@ export default function AdminBookingsPage() {
         href: "/admin/bookings",
       });
     },
-    [pushActivity, pushAudit, pushNotification, selected]
+    [
+      fetchRows,
+      pushActivity,
+      pushAudit,
+      pushNotification,
+      selected,
+      statusUpdating,
+    ]
   );
 
   const startEdit = useCallback(() => {
@@ -184,20 +223,27 @@ export default function AdminBookingsPage() {
     setDraftTravellers("");
   }, []);
 
-  const saveEdit = useCallback(() => {
+  const saveEdit = useCallback(async () => {
     if (!selected) return;
+    if (editSaving) return;
     const travellersNum = Number(draftTravellers);
     if (!draftDate) return;
     if (!Number.isFinite(travellersNum) || travellersNum <= 0) return;
 
-    setRows((prev) =>
-      prev.map((r) =>
-        r.id === selected.id
-          ? { ...r, date: draftDate, travellers: travellersNum }
-          : r
-      )
-    );
-    setIsEditing(false);
+    setEditSaving(true);
+    try {
+      await axios.patch(`/api/admin/bookings/${selected.id}`, {
+        date: draftDate,
+        travellers: travellersNum,
+      });
+      await fetchRows();
+      setIsEditing(false);
+    } catch {
+      // ignore
+      return;
+    } finally {
+      setEditSaving(false);
+    }
 
     const time = "Just now";
     pushAudit({
@@ -215,14 +261,33 @@ export default function AdminBookingsPage() {
       tone: "blue",
       href: "/admin/bookings",
     });
-  }, [draftDate, draftTravellers, pushActivity, pushAudit, selected]);
+  }, [
+    draftDate,
+    draftTravellers,
+    editSaving,
+    fetchRows,
+    pushActivity,
+    pushAudit,
+    selected,
+  ]);
 
-  const setStatusBulk = useCallback((ids: string[], status: BookingStatus) => {
-    if (ids.length === 0) return;
-    setRows((prev) =>
-      prev.map((r) => (ids.includes(r.id) ? { ...r, status } : r))
-    );
-  }, []);
+  const setStatusBulk = useCallback(
+    async (ids: string[], status: BookingStatus) => {
+      if (ids.length === 0) return;
+      if (bulkUpdating) return;
+
+      setBulkUpdating(true);
+      try {
+        await axios.patch("/api/admin/bookings", { bookingIds: ids, status });
+        await fetchRows();
+      } catch {
+        // ignore
+      } finally {
+        setBulkUpdating(false);
+      }
+    },
+    [bulkUpdating, fetchRows]
+  );
 
   const openBulkConfirm = useCallback(
     (action: "confirm" | "cancel", ids: string[]) => {
@@ -238,6 +303,127 @@ export default function AdminBookingsPage() {
     setConfirmIds([]);
     setConfirmAction(null);
   }, []);
+
+  const downloadBlob = useCallback((blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  }, []);
+
+  const exportBookings = useCallback(
+    async ({
+      format,
+      exportRows,
+      scope,
+    }: {
+      format: "csv" | "xlsx";
+      exportRows: BookingRow[];
+      scope: "selected" | "filtered";
+    }) => {
+      if (exporting) return;
+      const exportData: BookingExportRow[] = exportRows.map((r) => ({
+        booking_id: r.id,
+        customer: r.customer,
+        package: r.packageName,
+        date: r.date,
+        travellers: r.travellers,
+        amount: r.amount,
+        status: r.status,
+      }));
+
+      const stamp = new Date().toISOString().slice(0, 10);
+      const base = `bookings_${scope}_${stamp}`;
+
+      setExporting(format);
+      try {
+        if (format === "csv") {
+          const headers: (keyof BookingExportRow)[] = [
+            "booking_id",
+            "customer",
+            "package",
+            "date",
+            "travellers",
+            "amount",
+            "status",
+          ];
+
+          const esc = (v: unknown) => {
+            const s = String(v ?? "");
+            if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+            return s;
+          };
+
+          const csv = [
+            headers.join(","),
+            ...exportData.map((row) =>
+              headers.map((h) => esc(row[h])).join(",")
+            ),
+          ].join("\n");
+
+          downloadBlob(
+            new Blob([csv], { type: "text/csv;charset=utf-8" }),
+            `${base}.csv`
+          );
+        } else {
+          await exportBrandedXlsx<BookingExportRow>({
+            filename: `${base}.xlsx`,
+            sheetName: "Bookings",
+            title: "Bookings Report",
+            companyName: "Eben Tours",
+            logoUrl: "/Logo-011.webp",
+            meta: [
+              { label: "Generated", value: stamp },
+              { label: "Scope", value: scope },
+              { label: "Rows", value: String(exportRows.length) },
+            ],
+            columns: [
+              { header: "Booking ID", key: "booking_id", width: 16 },
+              { header: "Customer", key: "customer", width: 22 },
+              { header: "Package", key: "package", width: 28 },
+              { header: "Date", key: "date", width: 14 },
+              { header: "Travellers", key: "travellers", width: 12 },
+              { header: "Amount", key: "amount", width: 12 },
+              { header: "Status", key: "status", width: 14 },
+            ],
+            rows: exportData,
+          });
+        }
+      } finally {
+        setExporting(null);
+      }
+
+      const time = "Just now";
+      const count = exportRows.length;
+      pushAudit({
+        entity: "booking",
+        action: "export",
+        actor: "Fab",
+        summary: `Exported ${count} booking(s) (${scope}) as ${format.toUpperCase()}`,
+        time,
+        href: "/admin/bookings",
+      });
+      pushActivity({
+        title: "Bookings exported",
+        meta: `${count} row(s) • ${scope} • ${format.toUpperCase()}`,
+        time,
+        tone: "blue",
+        href: "/admin/bookings",
+      });
+      pushNotification({
+        type: "booking",
+        title: "Export ready",
+        body: `Downloaded ${count} booking(s) as ${format.toUpperCase()}`,
+        time,
+        href: "/admin/bookings",
+      });
+    },
+    [downloadBlob, exporting, pushActivity, pushAudit, pushNotification]
+  );
 
   const columns: ColumnDef<BookingRow>[] = useMemo(
     () => [
@@ -295,17 +481,26 @@ export default function AdminBookingsPage() {
         header: "",
         enableSorting: false,
         cell: ({ row }) => (
-          <button
-            type="button"
-            onClick={() => openDrawer(row.original.id)}
-            className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
-          >
-            View
-          </button>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => openDrawer(row.original.id)}
+              className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+            >
+              View
+            </button>
+            <button
+              type="button"
+              onClick={() => printBookingForm(row.original.id)}
+              className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
+            >
+              Print
+            </button>
+          </div>
         ),
       },
     ],
-    [openDrawer]
+    [openDrawer, printBookingForm]
   );
 
   return (
@@ -325,16 +520,21 @@ export default function AdminBookingsPage() {
           </span>
         }
         confirmLabel={
-          confirmAction === "cancel" ? "Yes, cancel" : "Yes, confirm"
+          bulkUpdating
+            ? "Updating..."
+            : confirmAction === "cancel"
+            ? "Yes, cancel"
+            : "Yes, confirm"
         }
         variant={confirmAction === "cancel" ? "danger" : "default"}
         onClose={closeBulkConfirm}
         onConfirm={() => {
           if (!confirmAction) return;
+          if (bulkUpdating) return;
 
           const newStatus =
             confirmAction === "cancel" ? "cancelled" : "confirmed";
-          setStatusBulk(confirmIds, newStatus);
+          void setStatusBulk(confirmIds, newStatus);
 
           const time = "Just now";
           const label = newStatus[0].toUpperCase() + newStatus.slice(1);
@@ -396,7 +596,7 @@ export default function AdminBookingsPage() {
               </div>
 
               <div className="mt-4 gap-3 rounded-2xl border border-emerald-900/10 bg-white p-3">
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="text-xs font-extrabold text-[var(--muted)]">
                     DETAILS
                   </div>
@@ -404,6 +604,7 @@ export default function AdminBookingsPage() {
                     <button
                       type="button"
                       onClick={startEdit}
+                      disabled={statusUpdating || editSaving}
                       className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                     >
                       Edit
@@ -413,6 +614,7 @@ export default function AdminBookingsPage() {
                       <button
                         type="button"
                         onClick={cancelEdit}
+                        disabled={editSaving}
                         className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                       >
                         Cancel
@@ -420,15 +622,16 @@ export default function AdminBookingsPage() {
                       <button
                         type="button"
                         onClick={saveEdit}
+                        disabled={editSaving}
                         className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
                       >
-                        Save
+                        {editSaving ? "Saving..." : "Save"}
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3 sm:grid-cols-2!">
                   <div className="rounded-2xl border border-emerald-900/10 bg-[#f6f8f7] p-3">
                     <div className="text-[11px] font-extrabold text-[var(--muted)]">
                       DATE
@@ -603,24 +806,34 @@ export default function AdminBookingsPage() {
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setStatus("pending")}
+                  onClick={() => printBookingForm(selected.id)}
                   className="rounded-xl border border-emerald-900/10 bg-white px-4 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                 >
-                  Mark Pending
+                  Print booking form
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatus("pending")}
+                  disabled={statusUpdating || editSaving}
+                  className="rounded-xl border border-emerald-900/10 bg-white px-4 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                >
+                  {statusUpdating ? "Updating..." : "Mark Pending"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStatus("confirmed")}
+                  disabled={statusUpdating || editSaving}
                   className="rounded-xl bg-emerald-700 px-4 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
                 >
-                  Confirm
+                  {statusUpdating ? "Updating..." : "Confirm"}
                 </button>
                 <button
                   type="button"
                   onClick={() => setStatus("cancelled")}
+                  disabled={statusUpdating || editSaving}
                   className="rounded-xl bg-red-600 px-4 py-2 text-xs font-extrabold text-white hover:bg-red-700"
                 >
-                  Cancel
+                  {statusUpdating ? "Updating..." : "Cancel"}
                 </button>
               </div>
               <div className="mt-3 text-xs font-semibold text-[var(--muted)]">
@@ -648,6 +861,7 @@ export default function AdminBookingsPage() {
             columns={columns}
             searchPlaceholder="Search bookings by id, customer, package..."
             pageSize={8}
+            loading={loading}
             enableRowSelection
             getRowId={(row) => (row as BookingRow).id}
             renderToolbar={(table) => {
@@ -657,8 +871,40 @@ export default function AdminBookingsPage() {
                 .getSelectedRowModel()
                 .rows.map((r) => (r.original as BookingRow).id);
 
+              const selectedRows = table
+                .getSelectedRowModel()
+                .rows.map((r) => r.original as BookingRow);
+              const filteredRows = table
+                .getFilteredRowModel()
+                .rows.map((r) => r.original as BookingRow);
+
+              const exportRows =
+                selectedRows.length > 0 ? selectedRows : filteredRows;
+              const scope = selectedRows.length > 0 ? "selected" : "filtered";
+
               return (
                 <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      exportBookings({ format: "csv", exportRows, scope })
+                    }
+                    disabled={loading || Boolean(exporting)}
+                    className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                  >
+                    {exporting === "csv" ? "Exporting..." : "Export CSV"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      exportBookings({ format: "xlsx", exportRows, scope })
+                    }
+                    disabled={loading || Boolean(exporting)}
+                    className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
+                  >
+                    {exporting === "xlsx" ? "Exporting..." : "Export XLSX"}
+                  </button>
+
                   {selectedIds.length > 0 ? (
                     <div className="flex flex-wrap items-center gap-2">
                       <button
@@ -666,22 +912,25 @@ export default function AdminBookingsPage() {
                         onClick={() => {
                           openBulkConfirm("confirm", selectedIds);
                         }}
+                        disabled={bulkUpdating}
                         className="rounded-xl bg-emerald-700 px-3 py-2 text-xs font-extrabold text-white hover:bg-emerald-800"
                       >
-                        Confirm selected
+                        {bulkUpdating ? "Updating..." : "Confirm selected"}
                       </button>
                       <button
                         type="button"
                         onClick={() => {
                           openBulkConfirm("cancel", selectedIds);
                         }}
+                        disabled={bulkUpdating}
                         className="rounded-xl bg-red-600 px-3 py-2 text-xs font-extrabold text-white hover:bg-red-700"
                       >
-                        Cancel selected
+                        {bulkUpdating ? "Updating..." : "Cancel selected"}
                       </button>
                       <button
                         type="button"
                         onClick={() => table.resetRowSelection()}
+                        disabled={bulkUpdating}
                         className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                       >
                         Clear selection
@@ -698,6 +947,7 @@ export default function AdminBookingsPage() {
                       onChange={(e) =>
                         statusCol?.setFilterValue(e.target.value)
                       }
+                      disabled={loading || Boolean(exporting) || bulkUpdating}
                       className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)]"
                     >
                       <option value="all">All</option>
@@ -715,6 +965,7 @@ export default function AdminBookingsPage() {
                       table.resetRowSelection();
                       closeBulkConfirm();
                     }}
+                    disabled={loading || Boolean(exporting) || bulkUpdating}
                     className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
                   >
                     Reset

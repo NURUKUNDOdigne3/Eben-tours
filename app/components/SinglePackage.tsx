@@ -1,24 +1,39 @@
+import { Earth, Tag } from "lucide-react";
 import styles from "./SinglePckage.module.css";
 
-export default function SinglePackage() {
+export default function SinglePackage({
+  id,
+  title,
+  description,
+  price,
+  imageUrl,
+  featured,
+}: {
+  id: string;
+  title: string;
+  description?: string | null;
+  price: number;
+  imageUrl?: string | null;
+  featured?: boolean;
+}) {
   return (
     <div className={styles["package-card"]}>
-      <div className={`${styles.ribbon} z-99999`}>Most Popular</div>
+      {featured ? (
+        <div className={`${styles.ribbon} z-99999`}>Most Popular</div>
+      ) : null}
       <div className={styles["img-box"]}>
-        <img src="/cro.jpg" alt="Volcano Tour" />
+        <img src={imageUrl || "/cro.webp"} alt={title} />
       </div>
-      <div className={styles["package-content"]}>
-        <h3>
-          <i className="fas fa-volcano"></i> Volcano & Gorilla Trekking
-        </h3>
-        <p>
-          Experience the breathtaking Volcanoes National Park and meet the
-          mountain gorillas.
-        </p>
-        <span className={styles.price}>
-          <i className="fas fa-tag"></i> From $650
+      <div className={`${styles["package-content"]}`}>
+        <div className="flex items-center! gap-2">
+          {/* <Earth size={25} /> */}
+          <h3 className="text-[14px]!">{title}</h3>
+        </div>
+        <p>{description || "Explore this tour package."}</p>
+        <span className={`flex items-center gap-2! ${styles.price}`}>
+          <Tag size={14} /> From ${price}
         </span>
-        <a href="/packages/details/[id]" className={styles.btn}>
+        <a href={`/packages/details/${id}`} className={styles.btn}>
           <i className="fas fa-eye"></i> View Details
         </a>
       </div>

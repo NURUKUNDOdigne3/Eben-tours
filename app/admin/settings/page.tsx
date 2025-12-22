@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import axios from "axios";
+import { useCallback, useEffect, useState } from "react";
 
 export default function AdminSettingsPage() {
   const [toast, setToast] = useState<null | string>(null);
+
+  const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState("Fab");
   const [role, setRole] = useState("Manager");
@@ -19,10 +22,64 @@ export default function AdminSettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const save = useCallback(() => {
-    setToast("Settings saved (mock)");
-    window.setTimeout(() => setToast(null), 1800);
+  const fetchSettings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/api/admin/settings");
+      const s = res.data?.settings;
+      if (s) {
+        setName(String(s.name ?? ""));
+        setRole(String(s.role ?? ""));
+        setEmail(String(s.email ?? ""));
+        setOrgName(String(s.orgName ?? ""));
+        setOrgPhone(String(s.orgPhone ?? ""));
+        setNotifyBookings(Boolean(s.notifyBookings));
+        setNotifyMessages(Boolean(s.notifyMessages));
+        setNotifyMarketing(Boolean(s.notifyMarketing));
+      }
+    } catch (err: any) {
+      setToast("Failed to load settings");
+      window.setTimeout(() => setToast(null), 1800);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchSettings();
+  }, [fetchSettings]);
+
+  const save = useCallback(async () => {
+    setLoading(true);
+    try {
+      await axios.patch("/api/admin/settings", {
+        name,
+        role,
+        email,
+        orgName,
+        orgPhone,
+        notifyBookings,
+        notifyMessages,
+        notifyMarketing,
+      });
+      setToast("Settings saved");
+      window.setTimeout(() => setToast(null), 1800);
+    } catch (err: any) {
+      setToast("Failed to save settings");
+      window.setTimeout(() => setToast(null), 1800);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    email,
+    name,
+    notifyBookings,
+    notifyMarketing,
+    notifyMessages,
+    orgName,
+    orgPhone,
+    role,
+  ]);
 
   const changePassword = useCallback(() => {
     if (!currentPassword || !newPassword || !confirmPassword) return;
@@ -52,9 +109,10 @@ export default function AdminSettingsPage() {
         <button
           type="button"
           onClick={save}
+          disabled={loading}
           className="rounded-xl bg-[var(--color-secondary)] px-4 py-2 text-xs font-extrabold text-white hover:opacity-90"
         >
-          Save changes
+          {loading ? "Saving..." : "Save changes"}
         </button>
       </div>
 

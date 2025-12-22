@@ -1,9 +1,65 @@
 "use client";
 
+import { Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import { PhoneInput } from "react-international-phone";
+import { toast } from "sonner";
 export default function ContactForm() {
   const [phone, setPhone] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (submitting) return;
+
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+
+    const name = String(fd.get("name") ?? "").trim();
+    const email = String(fd.get("email") ?? "")
+      .trim()
+      .toLowerCase();
+    const message = String(fd.get("message") ?? "").trim();
+    const phoneValue = String(phone ?? "").trim();
+
+    if (!name || !email || !message) {
+      toast.error("Please fill in your name, email and message.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone: phoneValue, message }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const err =
+          typeof data?.error === "string"
+            ? data.error
+            : "Failed to send message";
+        throw new Error(err);
+      }
+
+      toast.success("Message sent! We will get back to you within 24 hours.");
+      form.reset();
+      setPhone("");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to send message"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onReset = () => {
+    setPhone("");
+  };
+
   return (
     <section
       id="contact"
@@ -89,6 +145,8 @@ export default function ContactForm() {
 
               <form
                 id="booking-form"
+                onSubmit={onSubmit}
+                onReset={onReset}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -211,6 +269,7 @@ export default function ContactForm() {
                 <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
                   <button
                     type="submit"
+                    disabled={submitting}
                     className="cta-primary transition-all hover:opacity-95 cursor-pointer"
                     style={{
                       flex: 1,
@@ -224,21 +283,25 @@ export default function ContactForm() {
                       border: "1px solid rgba(255, 255, 255, 0.3)",
                       letterSpacing: "0.3px",
                       backdropFilter: "blur(10px)",
+                      opacity: submitting ? 0.75 : 1,
+                      cursor: submitting ? "not-allowed" : "pointer",
                     }}
                   >
-                    Send Message
+                    {submitting ? "Sending…" : "Send Message"}
                   </button>
                   <button
                     type="reset"
+                    disabled={submitting}
                     style={{
                       padding: "12px 16px",
                       borderRadius: "10px",
                       border: "2px solid rgba(30,86,49,0.2)",
                       background: "#fff",
                       color: "var(--color-primary)",
-                      cursor: "pointer",
+                      cursor: submitting ? "not-allowed" : "pointer",
                       fontWeight: 600,
                       transition: "all 0.3s ease",
+                      opacity: submitting ? 0.75 : 1,
                     }}
                   >
                     Clear
@@ -281,10 +344,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-map-marker-alt"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <MapPin style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4
@@ -345,10 +405,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-phone"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <Phone style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4
@@ -423,10 +480,7 @@ export default function ContactForm() {
                     flexShrink: 0,
                   }}
                 >
-                  <i
-                    className="fas fa-envelope"
-                    style={{ color: "#fff", fontSize: "20px" }}
-                  />
+                  <Mail style={{ color: "#fff", fontSize: "20px" }} />
                 </div>
                 <div>
                   <h4

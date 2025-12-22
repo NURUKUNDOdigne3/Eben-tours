@@ -1,3 +1,13 @@
+import {
+  ChevronRight,
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Phone,
+  Twitter,
+  Youtube,
+} from "lucide-react";
 import React from "react";
 
 export default function Footer() {
@@ -107,24 +117,18 @@ export default function Footer() {
                   position: "relative",
                   width: "56px",
                   height: "56px",
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05))",
-                  borderRadius: "14px",
+
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  backdropFilter: "blur(10px)",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
                 }}
               >
                 <img
-                  src="/Logo-011.png"
+                  src="/log.webp"
                   alt="Eben Tours Logo"
                   style={{
                     width: "48px",
                     height: "48px",
-                    borderRadius: "10px",
                     objectFit: "cover",
                   }}
                 />
@@ -183,20 +187,20 @@ export default function Footer() {
               }}
             >
               <a className="footer-icon" href="#facebook" aria-label="Facebook">
-                <i className="fab fa-facebook" style={{ fontSize: "18px" }} />
+                <Facebook style={{ fontSize: "18px" }} />
               </a>
               <a className="footer-icon" href="#twitter" aria-label="Twitter">
-                <i className="fab fa-twitter" style={{ fontSize: "18px" }} />
+                <Twitter style={{ fontSize: "18px" }} />
               </a>
               <a
                 className="footer-icon"
                 href="#instagram"
                 aria-label="Instagram"
               >
-                <i className="fab fa-instagram" style={{ fontSize: "18px" }} />
+                <Instagram style={{ fontSize: "18px" }} />
               </a>
               <a className="footer-icon" href="#youtube" aria-label="YouTube">
-                <i className="fab fa-youtube" style={{ fontSize: "18px" }} />
+                <Youtube style={{ fontSize: "18px" }} />
               </a>
             </div>
           </div>
@@ -242,37 +246,25 @@ export default function Footer() {
             >
               <li style={{ marginBottom: "12px" }}>
                 <a className="footer-link text-white" href="#packages">
-                  <i
-                    className="fas fa-chevron-right"
-                    style={{ fontSize: "12px", opacity: 0.6 }}
-                  />
+                  <ChevronRight style={{ fontSize: "12px", opacity: 0.6 }} />
                   Packages
                 </a>
               </li>
               <li style={{ marginBottom: "12px" }}>
                 <a className="footer-link text-white" href="#destinations">
-                  <i
-                    className="fas fa-chevron-right"
-                    style={{ fontSize: "12px", opacity: 0.6 }}
-                  />
+                  <ChevronRight style={{ fontSize: "12px", opacity: 0.6 }} />
                   Destinations
                 </a>
               </li>
               <li style={{ marginBottom: "12px" }}>
                 <a className="footer-link text-white" href="#blog">
-                  <i
-                    className="fas fa-chevron-right"
-                    style={{ fontSize: "12px", opacity: 0.6 }}
-                  />
+                  <ChevronRight style={{ fontSize: "12px", opacity: 0.6 }} />
                   Blog
                 </a>
               </li>
               <li>
                 <a className="footer-link text-white" href="#about">
-                  <i
-                    className="fas fa-chevron-right"
-                    style={{ fontSize: "12px", opacity: 0.6 }}
-                  />
+                  <ChevronRight style={{ fontSize: "12px", opacity: 0.6 }} />
                   About Us
                 </a>
               </li>
@@ -314,8 +306,7 @@ export default function Footer() {
               style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <a className="footer-card" href="tel:+250786140897">
-                <i
-                  className="fas fa-phone"
+                <Phone
                   style={{
                     color: "rgba(255,255,255,0.9)",
                     fontSize: "16px",
@@ -337,8 +328,7 @@ export default function Footer() {
                 className="footer-card"
                 href="mailto:administration@ebenconnections.com"
               >
-                <i
-                  className="fas fa-envelope"
+                <Mail
                   style={{
                     color: "rgba(255,255,255,0.9)",
                     fontSize: "16px",
@@ -357,8 +347,7 @@ export default function Footer() {
                 </span>
               </a>
               <div className="footer-card" aria-hidden="true">
-                <i
-                  className="fas fa-map-marker-alt"
+                <MapPin
                   style={{
                     color: "rgba(255,255,255,0.9)",
                     fontSize: "16px",

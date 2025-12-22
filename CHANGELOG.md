@@ -1,5 +1,40 @@
 # Changelog
 
+## December 2025 (Latest)
+
+### Branded Email Templates
+
+- Standardized outgoing emails using a shared branded wrapper (`sendBrandedEmail`).
+- Booking confirmation emails now use the shared branded template.
+- Admin broadcast emails and booking status update emails now use the shared branded template.
+
+### Booking Integrations (DB + Email)
+
+- Implemented public booking API (`POST /api/bookings`) to:
+  - Validate input
+  - Find/create customer
+  - Create booking in Prisma
+  - Send branded confirmation email
+- Integrated package details booking form to submit to the real booking API.
+- Integrated `/book` booking wizard to:
+  - Fetch real packages from `/api/packages`
+  - Submit real bookings to `/api/bookings`
+  - Show Sonner toasts + loading states
+
+### Contact Form → Admin Email
+
+- Added `POST /api/contact` to email contact form submissions to an admin inbox.
+- Uses branded email formatting with sender details + message + quick reply link.
+- Added client submission handling + Sonner toasts + loading state in `ContactForm`.
+- New required env var: `ADMIN_CONTACT_EMAIL`.
+
+### Navigation & UX
+
+- Active link highlighting:
+  - Admin sidebar highlights current route (supports nested routes)
+  - Public header highlights current route (supports nested routes)
+- Added NProgress route loading indicator (starts on internal link click, ends on route change).
+
 ## Admin Dashboard & Operations Tool
 
 ### Global Audit & Activity Logging

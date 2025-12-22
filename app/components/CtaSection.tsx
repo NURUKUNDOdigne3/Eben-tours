@@ -3,7 +3,10 @@ export default function CtaSection() {
   return (
     <section className={styles.hero} aria-label="Main hero - feel the nature">
       <video className={styles["hero-video"]} autoPlay muted loop playsInline>
-        <source src="/vids/Web_vidd.mp4" type="video/mp4" />
+        <source
+          src="/vids/458150_Lion_Lions_1920x1080.webm"
+          type="video/webm"
+        />
         Your browser does not support the video tag.
       </video>
 

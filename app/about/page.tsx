@@ -1,3 +1,17 @@
+import {
+  ArrowRight,
+  Check,
+  Crown,
+  Gem,
+  Handshake,
+  Heart,
+  Leaf,
+  MapPin,
+  Star,
+  Trophy,
+} from "lucide-react";
+import Link from "next/link";
+
 export default function AboutPage() {
   return (
     <section
@@ -51,10 +65,12 @@ export default function AboutPage() {
                 fontSize: "12px",
                 letterSpacing: "2px",
                 textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
               }}
             >
-              <i
-                className="fas fa-star"
+              <Star
+                size={16}
                 style={{ marginRight: "6px", color: "var(--color-primary)" }}
               />
               OUR STORY
@@ -123,7 +139,7 @@ export default function AboutPage() {
               }}
             >
               <img
-                src="/lion.jpg"
+                src="/lion.webp"
                 alt="Safari Adventure"
                 style={{
                   width: "100%",
@@ -194,10 +210,12 @@ export default function AboutPage() {
                   fontWeight: 700,
                   letterSpacing: "1px",
                   textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-trophy"
+                <Trophy
+                  size={16}
                   style={{ marginRight: "6px", color: "var(--color-primary)" }}
                 />
                 PREMIUM EXPERIENCE
@@ -282,8 +300,7 @@ export default function AboutPage() {
                     border: "1.5px solid rgba(30, 86, 49, 0.25)",
                   }}
                 >
-                  <i
-                    className="fas fa-check"
+                  <Check
                     style={{
                       color: "var(--color-primary)",
                       fontSize: "18px",
@@ -341,8 +358,7 @@ export default function AboutPage() {
                     border: "1.5px solid rgba(30, 86, 49, 0.25)",
                   }}
                 >
-                  <i
-                    className="fas fa-leaf"
+                  <Leaf
                     style={{
                       color: "var(--color-primary)",
                       fontSize: "18px",
@@ -400,8 +416,7 @@ export default function AboutPage() {
                     border: "1.5px solid rgba(30, 86, 49, 0.25)",
                   }}
                 >
-                  <i
-                    className="fas fa-map-location-dot"
+                  <MapPin
                     style={{
                       color: "var(--color-primary)",
                       fontSize: "18px",
@@ -459,8 +474,7 @@ export default function AboutPage() {
                     border: "1.5px solid rgba(30, 86, 49, 0.25)",
                   }}
                 >
-                  <i
-                    className="fas fa-crown"
+                  <Crown
                     style={{
                       color: "var(--color-primary)",
                       fontSize: "18px",
@@ -493,8 +507,8 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <a
-              href="#contact"
+            <Link
+              href="/destination"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
@@ -517,9 +531,9 @@ export default function AboutPage() {
                 overflow: "hidden",
               }}
             >
-              <i className="fas fa-arrow-right" style={{ fontSize: "16px" }} />
+              <ArrowRight style={{ fontSize: "16px" }} />
               Start Your Adventure
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -543,10 +557,12 @@ export default function AboutPage() {
                   fontWeight: 700,
                   letterSpacing: "1px",
                   textTransform: "uppercase",
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                <i
-                  className="fas fa-gem"
+                <Gem
+                  size={16}
                   style={{ marginRight: "6px", color: "var(--color-primary)" }}
                 />
                 WHAT DRIVES US
@@ -612,8 +628,7 @@ export default function AboutPage() {
                   border: "1.5px solid rgba(30, 86, 49, 0.2)",
                 }}
               >
-                <i
-                  className="fas fa-heart"
+                <Heart
                   style={{ color: "var(--color-primary)", fontSize: "28px" }}
                 />
               </div>
@@ -682,8 +697,7 @@ export default function AboutPage() {
                   border: "1.5px solid rgba(30, 86, 49, 0.2)",
                 }}
               >
-                <i
-                  className="fas fa-handshake"
+                <Handshake
                   style={{ color: "var(--color-primary)", fontSize: "28px" }}
                 />
               </div>
@@ -751,8 +765,7 @@ export default function AboutPage() {
                   border: "1.5px solid rgba(30, 86, 49, 0.2)",
                 }}
               >
-                <i
-                  className="fas fa-leaf"
+                <Leaf
                   style={{ color: "var(--color-primary)", fontSize: "28px" }}
                 />
               </div>
