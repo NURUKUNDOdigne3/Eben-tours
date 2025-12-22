@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import SectionHeader from "../components/SectionHeader";
 import { PhoneInput } from "react-international-phone";
+import { toast } from "sonner";
 
 type PackageOption = {
   id: string;
@@ -12,30 +13,6 @@ type PackageOption = {
   fromPrice: string;
   highlight: string;
 };
-
-const PACKAGE_OPTIONS: PackageOption[] = [
-  {
-    id: "volcano-gorilla-trek",
-    title: "Volcano & Gorilla Trekking",
-    days: "3 Days",
-    fromPrice: "$650",
-    highlight: "Volcanoes National Park & unforgettable gorilla encounter.",
-  },
-  {
-    id: "nyungwe-chimpanzee",
-    title: "Nyungwe Chimpanzee Trek",
-    days: "2 Days",
-    fromPrice: "$420",
-    highlight: "Rainforest trails, canopy walk, and chimp tracking.",
-  },
-  {
-    id: "akagera-safari",
-    title: "Akagera Big Five Safari",
-    days: "2 Days",
-    fromPrice: "$480",
-    highlight: "Game drives, boat safari, and classic savannah wildlife.",
-  },
-];
 
 type BookingForm = {
   packageId: string;
@@ -67,10 +44,63 @@ export default function BookPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [form, setForm] = useState<BookingForm>(initialForm);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [packages, setPackages] = useState<PackageOption[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setPackagesLoading(true);
+      try {
+        const res = await fetch("/api/packages", { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to load packages");
+        const data = await res.json().catch(() => null);
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+
+        const mapped: PackageOption[] = rows.map((p: any) => {
+          const daysNum = Number(p?.durationDays);
+          const days =
+            Number.isFinite(daysNum) && daysNum > 0 ? `${daysNum} Days` : "";
+          const priceNum = Number(p?.price);
+          const fromPrice = Number.isFinite(priceNum) ? `$${priceNum}` : "";
+          const description =
+            typeof p?.description === "string" ? p.description.trim() : "";
+          const highlight = description
+            ? description.slice(0, 90) + (description.length > 90 ? "…" : "")
+            : "";
+          return {
+            id: String(p?.id ?? "").trim(),
+            title: String(p?.title ?? "").trim(),
+            days,
+            fromPrice,
+            highlight,
+          };
+        });
+
+        if (!cancelled) setPackages(mapped.filter((p) => p.id && p.title));
+      } catch (e) {
+        if (!cancelled) {
+          setPackages([]);
+          toast.error(
+            e instanceof Error ? e.message : "Failed to load packages"
+          );
+        }
+      } finally {
+        if (!cancelled) setPackagesLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const selectedPackage = useMemo(
-    () => PACKAGE_OPTIONS.find((p) => p.id === form.packageId) || null,
-    [form.packageId]
+    () => packages.find((p) => p.id === form.packageId) || null,
+    [form.packageId, packages]
   );
 
   const errors = useMemo(() => {
@@ -127,18 +157,50 @@ export default function BookPage() {
     if (step === 3) setStep(2);
   };
 
-  const submitBooking = () => {
-    // For now, just a UX-friendly confirmation.
-    // Later we can POST to an API route or send an email.
-    alert(
-      `Booking request submitted!\n\nPackage: ${
-        selectedPackage?.title ?? ""
-      }\nName: ${form.fullName}\nEmail: ${form.email}`
-    );
+  const submitBooking = async () => {
+    if (submitting) return;
 
-    setForm(initialForm);
-    setTouched({});
-    setStep(1);
+    if (!selectedPackage?.id) {
+      toast.error("Please choose a package.");
+      setStep(1);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          packageId: selectedPackage.id,
+          name: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          travellers: form.travellers,
+          date: form.travelDate,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        const err =
+          typeof data?.error === "string"
+            ? data.error
+            : "Failed to submit booking";
+        throw new Error(err);
+      }
+
+      toast.success(
+        "Booking request submitted! Check your email for confirmation."
+      );
+      setForm(initialForm);
+      setTouched({});
+      setStep(1);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to submit booking");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -193,12 +255,13 @@ export default function BookPage() {
                   </div>
 
                   <div className="grid gap-3 md:grid-cols-3">
-                    {PACKAGE_OPTIONS.map((pkg) => {
+                    {(packagesLoading ? [] : packages).map((pkg) => {
                       const active = form.packageId === pkg.id;
                       return (
                         <button
                           key={pkg.id}
                           type="button"
+                          disabled={packagesLoading}
                           onClick={() => {
                             setForm((f) => ({ ...f, packageId: pkg.id }));
                             setTouched((t) => ({ ...t, packageId: true }));
@@ -236,6 +299,12 @@ export default function BookPage() {
                     })}
                   </div>
 
+                  {packagesLoading && (
+                    <div className="text-sm font-semibold text-[var(--muted)]">
+                      Loading packages…
+                    </div>
+                  )}
+
                   {touched.packageId && errors.packageId && (
                     <div className="text-sm font-semibold text-red-700">
                       {errors.packageId}
@@ -253,6 +322,7 @@ export default function BookPage() {
                     <button
                       type="button"
                       onClick={goNext}
+                      disabled={packagesLoading}
                       className="inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-extrabold text-white shadow-[0_16px_35px_rgba(30,86,49,0.25)] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-emerald-600/40"
                     >
                       Continue
@@ -529,9 +599,10 @@ export default function BookPage() {
                     <button
                       type="button"
                       onClick={submitBooking}
+                      disabled={submitting}
                       className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-600 to-lime-500 px-5 py-3 text-sm font-extrabold text-white shadow-[0_16px_35px_rgba(16,185,129,0.25)] transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-emerald-600/40"
                     >
-                      Confirm booking
+                      {submitting ? "Submitting…" : "Confirm booking"}
                     </button>
                   </div>
 
