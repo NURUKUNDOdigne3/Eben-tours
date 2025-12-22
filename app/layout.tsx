@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     siteName: "Eben Tours Safaris",
     images: [
       {
-        url: "/Logo-011.webp",
+        url: "/log.webp",
         width: 512,
         height: 512,
         alt: "Eben Tours Safaris",
@@ -68,7 +68,7 @@ export const metadata: Metadata = {
     title: "Eben Tours Safaris",
     description:
       "Bespoke African safari experiences with curated tours, expert guides, and easy online booking.",
-    images: ["/Logo-011.webp"],
+    images: ["/log.webp"],
   },
   icons: {
     icon: "/favicon.ico",
