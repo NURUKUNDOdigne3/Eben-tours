@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { PhoneInput } from "react-international-phone";
+import { toast } from "sonner";
 
 type TabKey = "itinerary" | "inclusions" | "exclusions" | "info";
 
@@ -51,6 +52,11 @@ export default function PackageDetails() {
   const id = String(params?.id ?? "");
   const [activeTab, setActiveTab] = useState<TabKey>("itinerary");
   const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [travellers, setTravellers] = useState(2);
+  const [travelDate, setTravelDate] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [pkg, setPkg] = useState<PackageDetailsRow | null>(null);
 
@@ -101,6 +107,49 @@ export default function PackageDetails() {
   const durationLabel = `${safePkg.durationDays} Day${
     safePkg.durationDays === 1 ? "" : "s"
   }`;
+
+  async function submitBooking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id) return;
+    if (submitting) return;
+    if (!fullName.trim() || !email.trim() || !travelDate) return;
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          packageId: id,
+          name: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          travellers,
+          date: travelDate,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(String(data?.error || "Booking failed"));
+
+      toast.success(
+        `Booking received! Your booking ID is ${String(
+          data?.booking?.id ?? ""
+        )}.`
+      );
+
+      setFullName("");
+      setEmail("");
+      setPhone("");
+      setTravellers(2);
+      setTravelDate("");
+    } catch (err: any) {
+      toast.error(String(err?.message || "Booking failed"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <>
       <SectionHeader
@@ -686,7 +735,7 @@ export default function PackageDetails() {
               />
 
               <form
-                onSubmit={(e) => e.preventDefault()}
+                onSubmit={submitBooking}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -711,6 +760,8 @@ export default function PackageDetails() {
                     type="text"
                     required
                     placeholder="John Rambo"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -741,6 +792,8 @@ export default function PackageDetails() {
                     type="email"
                     required
                     placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -808,7 +861,8 @@ export default function PackageDetails() {
                     required
                     min={2}
                     max={20}
-                    defaultValue={2}
+                    value={travellers}
+                    onChange={(e) => setTravellers(Number(e.target.value))}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -838,6 +892,8 @@ export default function PackageDetails() {
                   <input
                     type="date"
                     required
+                    value={travelDate}
+                    onChange={(e) => setTravelDate(e.target.value)}
                     style={{
                       width: "100%",
                       padding: "12px 14px",
@@ -884,6 +940,7 @@ export default function PackageDetails() {
 
                 <button
                   type="submit"
+                  disabled={submitting}
                   style={{
                     padding: "16px",
                     background:
@@ -893,7 +950,8 @@ export default function PackageDetails() {
                     borderRadius: "10px",
                     fontWeight: 700,
                     fontSize: "15px",
-                    cursor: "pointer",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    opacity: submitting ? 0.8 : 1,
                     transition: "all 0.3s ease",
                     textTransform: "uppercase",
                     letterSpacing: "0.5px",
@@ -903,7 +961,7 @@ export default function PackageDetails() {
                   }}
                 >
                   <CalendarCheck style={{ marginRight: "8px" }} />
-                  Book Now
+                  {submitting ? "Submitting..." : "Book Now"}
                   <span className="invisible" />
                 </button>
 

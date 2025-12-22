@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/app/lib/prisma";
-import { sendEmail } from "@/app/lib/mailer";
+import { sendBrandedEmail } from "@/app/lib/mailer";
 
 function isEmail(v: unknown) {
   if (typeof v !== "string") return false;
@@ -56,15 +56,27 @@ export async function POST(req: Request) {
 
   for (const t of targets) {
     try {
-      await sendEmail({
+      const safeName = String(t.name).replace(/</g, "&lt;");
+      const safeMessage = message
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\n/g, "<br/>");
+
+      await sendBrandedEmail({
         to: t.email,
         subject,
+        title: subject,
         text: `Hi ${t.name},\n\n${message}\n\n— Eben Tours`,
-        html:
-          `<div style=\"font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.6;color:#111\">` +
-          `<p>Hi ${String(t.name).replace(/</g, "&lt;")},</p>` +
-          `<p>${message.replace(/</g, "&lt;").replace(/\n/g, "<br/>")}</p>` +
-          `<p style=\"margin-top:18px\">— Eben Tours</p>` +
+        bodyHtml:
+          `<div style=\"font-size:18px;font-weight:900;margin:0 0 10px 0;\">${subject.replace(
+            /</g,
+            "&lt;"
+          )}</div>` +
+          `<div style=\"font-size:14px;line-height:1.8;color:#334155;font-weight:600;\">` +
+          `<p style=\"margin:0 0 12px 0\">Hi ${safeName},</p>` +
+          `<p style=\"margin:0 0 14px 0\">${safeMessage}</p>` +
+          `<p style=\"margin:0\">— Eben Tours</p>` +
           `</div>`,
       });
       sent += 1;
