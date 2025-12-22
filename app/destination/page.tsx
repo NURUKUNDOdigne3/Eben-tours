@@ -25,7 +25,7 @@ export default function DestinationPage() {
         <DestinationCard
           title="Rwanda"
           isFeatured={true}
-          flag="https://flagcdn.com/w40/rw.png"
+          flag="/flags/rw.png"
           bg="/gorila.webp"
           peakSeason="Jun-Sep"
           description="Mountain gorillas, lush landscapes, and the vibrant culture of the Land of a Thousand Hills"
@@ -33,7 +33,7 @@ export default function DestinationPage() {
         <DestinationCard
           title="Kenya"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/ke.png"
+          flag="/flags/ke.png"
           bg="/lion.webp"
           peakSeason="Jul-Oct"
           description="Safari adventures in the Maasai Mara, encounter the Big Five and experience authentic African wildlife."
@@ -41,7 +41,7 @@ export default function DestinationPage() {
         <DestinationCard
           title="Uganda"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/ug.png"
+          flag="/flags/ug.png"
           bg="/cro.webp"
           peakSeason="Jun-Aug"
           description="The Pearl of Africa with pristine forests, mountain gorillas, and the majestic Nile River"
@@ -49,7 +49,7 @@ export default function DestinationPage() {
         <DestinationCard
           title="Tanzania"
           isFeatured={false}
-          flag="https://flagcdn.com/w40/tz.png"
+          flag="/flags/tz.png"
           bg="/mountain.webp"
           peakSeason="Jan-Feb"
           description="Climb Africa's highest peak, witness the Serengeti migration, and explore Zanzibar's spice islands."

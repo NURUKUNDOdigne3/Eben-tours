@@ -1,3 +1,7 @@
-const nextConfig = {} as const;
+const nextConfig = {
+  images: {
+    domains: ["res.cloudinary.com"],
+  },
+} as const;
 
 export default nextConfig;
