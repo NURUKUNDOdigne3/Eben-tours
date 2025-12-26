@@ -30,7 +30,7 @@ export const metadata: Metadata = {
       "Bespoke African safari experiences with curated tours, expert guides, and easy online booking.",
     images: [
       {
-        url: "/Logo-011.webp",
+        url: "/log.webp",
         alt: "Eben Tours Safaris",
       },
     ],
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Eben Tours Safaris",
     description:
       "Bespoke African safari experiences with curated tours, expert guides, and easy online booking.",
-    images: ["/Logo-011.webp"],
+    images: ["/log.webp"],
   },
 };
 
@@ -68,9 +68,16 @@ function excerptFromParagraphs(paragraphs: string[]): string {
 export default async function Home() {
   return (
     <Suspense fallback={<HomeLoading />}>
-      <HomeContent />
+      <HomeContentWithDelay />
     </Suspense>
   );
+}
+
+async function HomeContentWithDelay() {
+  // Add a delay to ensure loading is visible for longer
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  return <HomeContent />;
 }
 
 async function HomeContent() {
