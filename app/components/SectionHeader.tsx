@@ -42,20 +42,19 @@ export default function SectionHeader({
         </p>
       </div>
       <h2
+        className="w-full sm:w-[1050px]! text-[46px] sm:text-[48px]!"
         style={{
-          fontSize: "48px",
           // margin: "16px 0",
           color: "var(--color-secondary)",
           fontFamily: "var(--font-serif)",
-          width: "1050px",
           margin: "0 auto",
         }}
       >
         {title}
       </h2>
       <p
+        className="text-[13px] sm:text-[18px]!"
         style={{
-          fontSize: "18px",
           color: "var(--muted)",
           maxWidth: "600px",
           margin: "0 auto",

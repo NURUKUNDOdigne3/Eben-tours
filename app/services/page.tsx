@@ -44,8 +44,8 @@ export default function page() {
           />
 
           <h2
+            className="text-[54px] sm:text-[56px]! w-full"
             style={{
-              fontSize: "56px",
               color: "var(--color-secondary)",
               margin: "0 0 20px 0",
               letterSpacing: "-1px",
@@ -56,8 +56,8 @@ export default function page() {
           </h2>
           <div style={{ maxWidth: "680px", margin: "0 auto" }}>
             <p
+              className="text-[12px] sm:text-[18px]"
               style={{
-                fontSize: "18px",
                 color: "var(--muted)",
                 lineHeight: 1.9,
                 fontWeight: 500,
@@ -70,7 +70,7 @@ export default function page() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3! gap-4!">
+        <div className="grid grid-rows-1 sm:grid-cols-3! gap-4!">
           <SingleService
             title="Transport Service"
             icon={<Bus />}
