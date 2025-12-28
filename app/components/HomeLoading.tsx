@@ -30,10 +30,9 @@ export default function HomeLoading() {
         />
       </div>
 
-      <div className="relative -top-[80px] text-center ">
+      <div className="relative -top-[80px] text-center text-[65px]! sm:text-[68px]!">
         <h2
           style={{
-            fontSize: "68px",
             fontWeight: 800,
             margin: "0 0 12px 0",
             letterSpacing: "-0.5px",

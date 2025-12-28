@@ -115,12 +115,9 @@ export default function ContactForm() {
         </div>
 
         <div
+          className="grid grid-rows-1 sm:grid-cols-2! gap-[32px]! items-start"
           style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "32px",
             marginBottom: "32px",
-            alignItems: "start",
           }}
         >
           <div>

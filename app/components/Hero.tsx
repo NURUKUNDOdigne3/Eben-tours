@@ -131,15 +131,15 @@ export default function Hero() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "520px",
-          padding: "80px 20px 60px 20px",
+          // padding: "80px 20px 60px 20px",
           textAlign: "center",
           marginTop: "60px",
         }}
       >
         <h1
+          className="text-[25px]! px-2 sm:text-[48px]!"
           style={{
             color: "#fff",
-            fontSize: "48px",
             fontFamily: "var(--font-serif)",
             fontWeight: 700,
             letterSpacing: "-0.5px",

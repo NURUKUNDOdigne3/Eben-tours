@@ -75,7 +75,7 @@ export default async function Home() {
 
 async function HomeContentWithDelay() {
   // Add a delay to ensure loading is visible for longer
-  await new Promise((resolve) => setTimeout(resolve, 4000));
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
 
   return <HomeContent />;
 }
@@ -111,13 +111,13 @@ async function HomeContent() {
       <Hero />
       <main className="container" id="home">
         <h2
+          className="text-[20px] sm:text-[36px]!"
           style={{
             position: "relative",
             zIndex: 10,
             marginTop: "60px",
             marginBottom: "30px",
             fontWeight: "600",
-            fontSize: "36px",
           }}
         >
           Our Major Destinations
@@ -138,11 +138,11 @@ async function HomeContent() {
         >
           <div className="flex flex-col">
             <h2
+              className="text-[20px] sm:text-[36px]!"
               style={{
                 position: "relative",
                 zIndex: 10,
                 fontWeight: "600",
-                fontSize: "36px",
               }}
             >
               Eben Safaris Packages
@@ -151,11 +151,11 @@ async function HomeContent() {
           </div>
           <Link
             href="/packages"
-            className="hover:translate-x-2"
+            className="hover:translate-x-2 text-[12px] sm:text-[15px] w-[170px] sm:w-fit"
             style={{
               fontWeight: 700,
               color: "var(--color-primary)",
-              fontSize: "15px",
+
               transition: "all 0.3s ease",
             }}
           >
@@ -190,11 +190,11 @@ async function HomeContent() {
         >
           <div className="flex flex-col">
             <h2
+              className="text-[20px] sm:text-[36px]!"
               style={{
                 position: "relative",
                 zIndex: 10,
                 fontWeight: "600",
-                fontSize: "36px",
               }}
             >
               What our guests say
@@ -231,11 +231,11 @@ async function HomeContent() {
         >
           <div className="flex flex-col">
             <h2
+              className="text-[20px] sm:text-[36px]!"
               style={{
                 position: "relative",
                 zIndex: 10,
                 fontWeight: "600",
-                fontSize: "36px",
               }}
             >
               Our Partners
@@ -258,11 +258,11 @@ async function HomeContent() {
         >
           <div className="flex flex-col">
             <h2
+              className="text-[20px] sm:text-[36px]!"
               style={{
                 position: "relative",
                 zIndex: 10,
                 fontWeight: "600",
-                fontSize: "36px",
               }}
             >
               Latest from our Journal
@@ -271,7 +271,7 @@ async function HomeContent() {
           </div>
           <Link
             href="/blogs"
-            className="hover:translate-x-2"
+            className="hover:translate-x-2 sm:w-fit w-[180px]!"
             style={{
               fontWeight: 700,
               color: "var(--color-primary)",
