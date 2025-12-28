@@ -89,8 +89,8 @@ export default function AboutPage() {
           </div>
 
           <h2
+            className="text-[33px]! sm:text-[56px]!"
             style={{
-              fontSize: "56px",
               color: "var(--color-secondary)",
               margin: "0 0 20px 0",
               letterSpacing: "-1px",
@@ -101,8 +101,8 @@ export default function AboutPage() {
           </h2>
           <div style={{ maxWidth: "680px", margin: "0 auto" }}>
             <p
+              className="text-[14px]! sm:text-[18px]!"
               style={{
-                fontSize: "18px",
                 color: "var(--muted)",
                 lineHeight: 1.9,
                 fontWeight: 500,
@@ -236,8 +236,8 @@ export default function AboutPage() {
             </div>
 
             <h3
+              className="text-[28px]! sm:text-[40px]!"
               style={{
-                fontSize: "40px",
                 color: "var(--color-secondary)",
                 margin: "0 0 24px 0",
                 fontWeight: 800,
@@ -280,10 +280,8 @@ export default function AboutPage() {
             </p>
 
             <div
+              className="grid grid-rows-1 sm:grid-cols-2! gap-[20px]"
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "20px",
                 marginBottom: "40px",
               }}
             >
@@ -582,8 +580,8 @@ export default function AboutPage() {
               </p>
             </div>
             <h3
+              className="text-[40px]! sm:text-[48px]!"
               style={{
-                fontSize: "48px",
                 textAlign: "center",
                 color: "var(--color-secondary)",
                 margin: 0,
@@ -594,13 +592,7 @@ export default function AboutPage() {
             </h3>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "32px",
-            }}
-          >
+          <div className="grid grid-rows-1 sm:grid-cols-3 gap-[34px]">
             <div
               style={{
                 padding: "40px",
