@@ -185,20 +185,15 @@ export default function PackageDetails() {
         </div>
 
         <div
+          className="grid grid-rows-1 sm:grid-cols-2 gap-[40px]"
           style={{
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr",
-            gap: "40px",
             marginBottom: "60px",
-            alignItems: "start",
           }}
         >
           <div>
             <div
+              className="grid grid-rows-1 sm:grid-cols-3 gap-[16px]"
               style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: "16px",
                 marginBottom: "40px",
               }}
             >
@@ -310,11 +305,14 @@ export default function PackageDetails() {
 
             <div
               style={{
+                position: "sticky",
+                top: 0,
                 display: "flex",
                 gap: 0,
                 marginBottom: "32px",
                 borderBottom: "2px solid rgba(30,86,49,0.1)",
                 flexWrap: "wrap",
+                background: "#faf7f4",
               }}
             >
               <button
