@@ -24,8 +24,8 @@ export default function SinglePackage({
       ) : null}
       <div className={styles["img-box"]}>
         <Image
-          width={100}
-          height={100}
+          width={400}
+          height={300}
           src={imageUrl || "/cro.webp"}
           alt={title}
         />
@@ -35,9 +35,11 @@ export default function SinglePackage({
           {/* <Earth size={25} /> */}
           <h3 className="text-[14px]!">{title}</h3>
         </div>
-        <p>{description || "Explore this tour package."}</p>
+        <p className="line-clamp-3">
+          {description || "Explore this tour package."}
+        </p>
         <span className={`flex items-center gap-2! ${styles.price}`}>
-          <Tag size={14} /> From ${price}
+          <Tag size={14} /> From ${Number(price).toLocaleString()}
         </span>
         <a href={`/packages/details/${id}`} className={styles.btn}>
           <i className="fas fa-eye"></i> View Details

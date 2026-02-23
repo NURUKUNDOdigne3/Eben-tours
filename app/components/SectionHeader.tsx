@@ -52,8 +52,8 @@ export default function SectionHeader({
       >
         {title}
       </h2>
-      <p
-        className="text-[13px] sm:text-[18px]!"
+      {/* <p
+        className="text-[13px] sm:text-[18px]! line-clamp-3"
         style={{
           color: "var(--muted)",
           maxWidth: "600px",
@@ -62,7 +62,7 @@ export default function SectionHeader({
         }}
       >
         {description}
-      </p>
+      </p> */}
     </div>
   );
 }

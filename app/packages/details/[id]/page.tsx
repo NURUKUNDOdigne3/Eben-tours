@@ -20,7 +20,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { PhoneInput } from "react-international-phone";
 import { toast } from "sonner";
 
@@ -47,6 +47,107 @@ type PackageDetailsRow = {
   exclusions: string[];
   info: string[];
 };
+
+function SkeletonBox({ className }: { className?: string }) {
+  return (
+    <div
+      className={`animate-pulse rounded-md bg-[rgba(30,86,49,0.10)] ${
+        className ?? ""
+      }`}
+    />
+  );
+}
+
+function PackageDetailsSkeleton() {
+  return (
+    <>
+      <SectionHeader title="" note="Tour Details" description="" />
+
+      <div className="container">
+        <div
+          style={{
+            width: "100%",
+            height: "500px",
+            borderRadius: "16px",
+            overflow: "hidden",
+            boxShadow: "0 20px 60px rgba(30,86,49,0.15)",
+            marginBottom: "60px",
+          }}
+        >
+          <SkeletonBox className="h-full w-full" />
+        </div>
+
+        <div
+          className="grid grid-rows-1! sm:grid-cols-3! gap-[40px]"
+          style={{ marginBottom: "60px" }}
+        >
+          <div className="col-span-2">
+            <div
+              className="grid grid-rows-1! sm:grid-cols-3! gap-[16px]"
+              style={{ marginBottom: "40px" }}
+            >
+              <SkeletonBox className="h-[104px] w-full" />
+              <SkeletonBox className="h-[104px] w-full" />
+              <SkeletonBox className="h-[104px] w-full" />
+            </div>
+
+            <div
+              className="grid grid-cols-1 sm:grid-cols-4!"
+              style={{
+                marginBottom: "32px",
+                borderBottom: "2px solid rgba(30,86,49,0.1)",
+                background: "#faf7f4",
+              }}
+            >
+              <SkeletonBox className="h-[54px] w-full" />
+              <SkeletonBox className="h-[54px] w-full" />
+              <SkeletonBox className="h-[54px] w-full" />
+              <SkeletonBox className="h-[54px] w-full" />
+            </div>
+
+            <div className="tab-content">
+              <SkeletonBox className="h-[34px] w-[220px] mb-[28px]" />
+              <div style={{ display: "grid", gap: "16px" }}>
+                <SkeletonBox className="h-[90px] w-full" />
+                <SkeletonBox className="h-[90px] w-full" />
+                <SkeletonBox className="h-[90px] w-full" />
+              </div>
+            </div>
+          </div>
+
+          <div style={{ position: "sticky", top: "100px" }}>
+            <div
+              style={{
+                background: "#fff",
+                padding: "32px",
+                borderRadius: "16px",
+                boxShadow: "0 10px 40px rgba(30,86,49,0.12)",
+                border: "1px solid rgba(30,86,49,0.1)",
+                marginBottom: "24px",
+              }}
+            >
+              <SkeletonBox className="h-[16px] w-[130px] mb-[14px]" />
+              <SkeletonBox className="h-[56px] w-[220px] mb-[10px]" />
+              <SkeletonBox className="h-[14px] w-[180px] mb-[24px]" />
+              <SkeletonBox className="h-[1px] w-full mb-[24px]" />
+
+              <div style={{ display: "grid", gap: "16px" }}>
+                <SkeletonBox className="h-[44px] w-full" />
+                <SkeletonBox className="h-[44px] w-full" />
+                <SkeletonBox className="h-[44px] w-full" />
+                <SkeletonBox className="h-[44px] w-full" />
+                <SkeletonBox className="h-[44px] w-full" />
+                <SkeletonBox className="h-[52px] w-full" />
+              </div>
+            </div>
+
+            <SkeletonBox className="h-[132px] w-full" />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export default function PackageDetails() {
   const params = useParams<{ id: string }>();
@@ -85,28 +186,57 @@ export default function PackageDetails() {
     };
   }, [id]);
 
-  const safePkg = useMemo(() => {
-    if (!pkg)
-      return {
-        id,
-        title: "Package",
-        location: "",
-        durationDays: 1,
-        price: 0,
-        maxGroup: 0,
-        featured: false,
-        imageUrl: null,
-        description: null,
-        itinerary: [] as ItineraryItem[],
-        inclusions: [] as string[],
-        exclusions: [] as string[],
-        info: [] as string[],
-      };
-    return pkg;
-  }, [id, pkg]);
+  if (loading) {
+    return <PackageDetailsSkeleton />;
+  }
 
-  const durationLabel = `${safePkg.durationDays} Day${
-    safePkg.durationDays === 1 ? "" : "s"
+  if (!pkg) {
+    return (
+      <>
+        <SectionHeader
+          title="Package not found"
+          note="Tour Details"
+          description="We couldn't load this package. Please go back and try another one."
+        />
+
+        <div className="container" style={{ paddingBottom: "60px" }}>
+          <div
+            style={{
+              background: "#fff",
+              padding: "24px",
+              borderRadius: "16px",
+              border: "1px solid rgba(30,86,49,0.1)",
+              boxShadow: "0 10px 40px rgba(30,86,49,0.08)",
+            }}
+          >
+            <p style={{ margin: 0, color: "var(--muted)" }}>
+              This package may have been removed, or your connection might be
+              offline.
+            </p>
+            <div style={{ marginTop: "16px" }}>
+              <Link
+                href="/packages"
+                style={{
+                  display: "inline-block",
+                  padding: "12px 16px",
+                  borderRadius: "10px",
+                  background: "var(--color-primary)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                Back to packages
+              </Link>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  const durationLabel = `${pkg.durationDays} Day${
+    pkg.durationDays === 1 ? "" : "s"
   }`;
 
   async function submitBooking(e: React.FormEvent) {
@@ -154,13 +284,11 @@ export default function PackageDetails() {
   return (
     <>
       <SectionHeader
-        title={loading ? "Loading..." : safePkg.title}
+        title={pkg.title}
         note="Tour Details"
         description={
-          loading
-            ? ""
-            : safePkg.description ||
-              "Discover this tour package and create unforgettable memories."
+          pkg.description ||
+          "Discover this tour package and create unforgettable memories."
         }
       />
 
@@ -178,21 +306,21 @@ export default function PackageDetails() {
           <Image
             width={500}
             height={500}
-            src={safePkg.imageUrl || "/canopy_walk.webp"}
-            alt={safePkg.title}
+            src={pkg.imageUrl || "/canopy_walk.webp"}
+            alt={pkg.title}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
         </div>
 
         <div
-          className="grid grid-rows-1 sm:grid-cols-2 gap-[40px]"
+          className="grid grid-rows-1! sm:grid-cols-3! gap-[40px]"
           style={{
             marginBottom: "60px",
           }}
         >
-          <div>
+          <div className="col-span-2">
             <div
-              className="grid grid-rows-1 sm:grid-cols-3 gap-[16px]"
+              className="grid grid-rows-1! sm:grid-cols-3! gap-[16px]"
               style={{
                 marginBottom: "40px",
               }}
@@ -263,7 +391,7 @@ export default function PackageDetails() {
                     color: "var(--color-primary)",
                   }}
                 >
-                  {safePkg.location || "-"}
+                  {pkg.location || "-"}
                 </div>
               </div>
 
@@ -298,21 +426,23 @@ export default function PackageDetails() {
                     color: "var(--color-primary)",
                   }}
                 >
-                  {safePkg.maxGroup ? `${safePkg.maxGroup} People` : "-"}
+                  {pkg.maxGroup ? `${pkg.maxGroup} People` : "-"}
                 </div>
               </div>
             </div>
 
             <div
+              className="grid grid-cols-1 sm:grid-cols-4!"
               style={{
                 position: "sticky",
                 top: 0,
-                display: "flex",
-                gap: 0,
+                // display: "flex",
+                // gap: 0,
                 marginBottom: "32px",
                 borderBottom: "2px solid rgba(30,86,49,0.1)",
-                flexWrap: "wrap",
+                // flexWrap: "wrap",
                 background: "#faf7f4",
+                zIndex: 10,
               }}
             >
               <button
@@ -440,20 +570,20 @@ export default function PackageDetails() {
                   Tour Itinerary
                 </h2>
 
-                {safePkg.itinerary.length ? (
-                  safePkg.itinerary.map((item, idx) => (
+                {pkg.itinerary.length ? (
+                  pkg.itinerary.map((item, idx) => (
                     <div
                       key={`${item.time}-${idx}`}
                       style={{
                         display: "flex",
                         gap: "24px",
                         marginBottom:
-                          idx === safePkg.itinerary.length - 1 ? 0 : "40px",
+                          idx === pkg.itinerary.length - 1 ? 0 : "40px",
                         position: "relative",
                         paddingBottom:
-                          idx === safePkg.itinerary.length - 1 ? 0 : "40px",
+                          idx === pkg.itinerary.length - 1 ? 0 : "40px",
                         borderBottom:
-                          idx === safePkg.itinerary.length - 1
+                          idx === pkg.itinerary.length - 1
                             ? "none"
                             : "1px solid rgba(30,86,49,0.1)",
                       }}
@@ -515,7 +645,7 @@ export default function PackageDetails() {
                 >
                   What's Included
                 </h2>
-                {safePkg.inclusions.length ? (
+                {pkg.inclusions.length ? (
                   <div
                     style={{
                       display: "grid",
@@ -523,7 +653,7 @@ export default function PackageDetails() {
                       gap: "16px",
                     }}
                   >
-                    {safePkg.inclusions.map((item, idx) => (
+                    {pkg.inclusions.map((item, idx) => (
                       <div
                         key={`${idx}-${item}`}
                         style={{
@@ -577,7 +707,7 @@ export default function PackageDetails() {
                 >
                   What's Not Included
                 </h2>
-                {safePkg.exclusions.length ? (
+                {pkg.exclusions.length ? (
                   <div
                     style={{
                       display: "grid",
@@ -585,7 +715,7 @@ export default function PackageDetails() {
                       gap: "16px",
                     }}
                   >
-                    {safePkg.exclusions.map((item, idx) => (
+                    {pkg.exclusions.map((item, idx) => (
                       <div
                         key={`${idx}-${item}`}
                         style={{
@@ -639,7 +769,7 @@ export default function PackageDetails() {
                 >
                   Essential Information
                 </h2>
-                {safePkg.info.length ? (
+                {pkg.info.length ? (
                   <div
                     style={{
                       display: "grid",
@@ -647,7 +777,7 @@ export default function PackageDetails() {
                       gap: "20px",
                     }}
                   >
-                    {safePkg.info.map((item, idx) => (
+                    {pkg.info.map((item, idx) => (
                       <div key={`${idx}-${item}`}>
                         <h4
                           style={{
@@ -713,7 +843,7 @@ export default function PackageDetails() {
                     margin: 0,
                   }}
                 >
-                  ${safePkg.price.toFixed(0)}
+                  ${Number(pkg.price.toFixed(0)).toLocaleString()}
                 </div>
                 <p
                   style={{
@@ -925,7 +1055,7 @@ export default function PackageDetails() {
                   >
                     Total:{" "}
                     <span style={{ color: "var(--color-primary)" }}>
-                      ${safePkg.price.toFixed(0)}
+                      ${Number(pkg.price.toFixed(0)).toLocaleString()}
                     </span>
                   </p>
                   <p
