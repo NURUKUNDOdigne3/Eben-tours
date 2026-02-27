@@ -7,8 +7,8 @@ export default function SingleBlog({ post }: { post: BlogPost }) {
   return (
     <article className="card">
       <Image
-        width={100}
-        height={100}
+        width={400}
+        height={300}
         src={post.image || "/gorila.webp"}
         alt={post.title}
         loading="lazy"

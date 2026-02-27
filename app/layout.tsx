@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     siteName: "Eben Tours Safaris",
     images: [
       {
-        url: "/log.webp",
+        url: "/log.png",
         width: 512,
         height: 512,
         alt: "Eben Tours Safaris",
@@ -68,12 +68,12 @@ export const metadata: Metadata = {
     title: "Eben Tours Safaris",
     description:
       "Bespoke African safari experiences with curated tours, expert guides, and easy online booking.",
-    images: ["/log.webp"],
+    images: ["/log.png"],
   },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/log.webp",
-    apple: "/favicon-apple.ico",
+    shortcut: "/log.png",
+    apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
 };
@@ -86,6 +86,9 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="icon" href="/favicon.ico" />
+        </head>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased `}
         >
