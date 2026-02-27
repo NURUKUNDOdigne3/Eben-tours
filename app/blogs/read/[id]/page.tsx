@@ -63,8 +63,8 @@ export default async function BlogReadPage({
             <Image
               src={post.imageUrl || "/gorila.webp"}
               alt={post.title}
-              width={500}
-              height={500}
+              width={800}
+              height={700}
               style={{ width: "100%", height: "420px", objectFit: "cover" }}
             />
           </div>
