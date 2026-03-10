@@ -84,8 +84,37 @@ async function HomeContent() {
   const packages = await prisma.package.findMany({
     where: { status: "active" },
     orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
-    take: 3,
+    take: 6,
   });
+
+  const countryOrder = ["rwanda", "kenya", "tanzania", "uganda"] as const;
+
+  const packagesByCountry = new Map<
+    (typeof countryOrder)[number],
+    typeof packages
+  >(countryOrder.map((c) => [c, [] as typeof packages]));
+
+  for (const p of packages) {
+    const c = String((p as any).country) as (typeof countryOrder)[number];
+    if (packagesByCountry.has(c)) {
+      packagesByCountry.get(c)!.push(p);
+    }
+  }
+
+  const arrangedPackages: typeof packages = [];
+  const limit = 6;
+  while (arrangedPackages.length < limit) {
+    let added = false;
+    for (const c of countryOrder) {
+      if (arrangedPackages.length >= limit) break;
+      const list = packagesByCountry.get(c);
+      if (list && list.length) {
+        arrangedPackages.push(list.shift()!);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
 
   const posts = await prisma.blogPost.findMany({
     where: { status: "published" },
@@ -164,7 +193,7 @@ async function HomeContent() {
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          {packages.map((p) => (
+          {arrangedPackages.map((p) => (
             <SinglePackage
               key={p.publicId}
               id={p.publicId}
