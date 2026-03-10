@@ -145,7 +145,7 @@ export default function Hero() {
             letterSpacing: "-0.5px",
           }}
         >
-          The Ultimate Bespoke African Safari Experience Let the Adventure Begin
+          The Ultimate Bespoke African Safari Experience, Let the Adventure Begin
         </h1>
 
         <div
