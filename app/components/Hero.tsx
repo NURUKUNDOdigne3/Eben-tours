@@ -3,6 +3,7 @@
 import Image from "next/image";
 import "./Hero.module.css";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 type HeroMediaType = "image" | "video";
 type HeroMediaRow = { position: number; type: HeroMediaType; url: string };
@@ -145,7 +146,8 @@ export default function Hero() {
             letterSpacing: "-0.5px",
           }}
         >
-          The Ultimate Bespoke African Safari Experience, Let the Adventure Begin
+          The Ultimate Bespoke African Safari Experience, Let the Adventure
+          Begin
         </h1>
 
         <div
@@ -157,8 +159,8 @@ export default function Hero() {
             marginBottom: "24px",
           }}
         >
-          <a
-            href="#packages"
+          <Link
+            href="/packages"
             className="cta-primary transition-all hover:opacity-80 cursor-pointer"
             style={{
               flex: 1,
@@ -176,7 +178,7 @@ export default function Hero() {
             }}
           >
             View Packages
-          </a>
+          </Link>
           <a
             href="#contact"
             style={{
