@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function PartnersSection() {
   const partners = [
     {
-      src: "/RDB.webp",
+      src: "/RDB.png",
       alt: "RDB Partner logo",
     },
     {
@@ -15,7 +15,7 @@ export default function PartnersSection() {
       alt: "One Only Partner",
     },
     {
-      src: "/bfc9ff252b470cbc671e871d1efe3689.webp",
+      src: "/qatar.png",
       alt: "Partner logo",
     },
     {

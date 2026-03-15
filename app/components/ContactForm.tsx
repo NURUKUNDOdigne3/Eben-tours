@@ -2,6 +2,7 @@
 
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
+import { BsWhatsapp } from "react-icons/bs";
 import { PhoneInput } from "react-international-phone";
 import { toast } from "sonner";
 export default function ContactForm() {
@@ -49,7 +50,7 @@ export default function ContactForm() {
       setPhone("");
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to send message"
+        err instanceof Error ? err.message : "Failed to send message",
       );
     } finally {
       setSubmitting(false);
@@ -511,6 +512,75 @@ export default function ContactForm() {
                     }}
                   >
                     We&apos;ll respond within 24 hours
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#fff",
+                padding: "22px",
+                borderRadius: "14px",
+                borderLeft: "5px solid var(--color-primary)",
+                boxShadow: "0 8px 28px rgba(30,86,49,0.1)",
+                transition: "all 0.3s ease",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--color-primary), #2d5a47)",
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "10px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <BsWhatsapp style={{ color: "#fff", fontSize: "20px" }} />
+                </div>
+                <div>
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: "16px",
+                      fontWeight: 700,
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    Whatsapp
+                  </h4>
+                  <p style={{ margin: "6px 0 0", fontSize: "14px" }}>
+                    <a
+                      href="tel:+250786140897"
+                      style={{
+                        color: "var(--color-primary)",
+                        textDecoration: "none",
+                        fontWeight: 600,
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      (+250) 786 140 897
+                    </a>
+                  </p>
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      fontSize: "13px",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    Available Mon-Sun, We&apos;ll respond within 24 hours
                   </p>
                 </div>
               </div>
