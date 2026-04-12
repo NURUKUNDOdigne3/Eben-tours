@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function PartnersSection() {
   const partners = [
     {
-      src: "/RDB.webp",
+      src: "/rdb.png",
       alt: "RDB Partner logo",
     },
     {
@@ -15,7 +15,7 @@ export default function PartnersSection() {
       alt: "One Only Partner",
     },
     {
-      src: "/bfc9ff252b470cbc671e871d1efe3689.webp",
+      src: "/qatar.png",
       alt: "Partner logo",
     },
     {
@@ -23,8 +23,8 @@ export default function PartnersSection() {
       alt: "RDB Partner logo",
     },
     {
-      src: "/kisspng-logo-brand-product-design-font-morvick-travels-amp-tours-ltd-nigeria-amp-apos-5b75f057225813.0890403615344558951407.webp",
-      alt: "RDB Partner logo",
+      src: "/RwandaAirLogo.svg",
+      alt: "RwandaAir logo",
     },
   ];
 

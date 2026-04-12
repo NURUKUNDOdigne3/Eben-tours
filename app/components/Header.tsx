@@ -22,6 +22,7 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={`${styles.container} ${styles.nav}`}>
+        <Link href={'/'}>
         <div className={`cursor-pointer ${styles.brand}`}>
           <Image width={60} height={60} src="/log.webp" alt="ventures logo" />
           <div>
@@ -31,7 +32,7 @@ export default function Header() {
             </div>
           </div>
         </div>
-
+      </Link>
         <nav aria-label="Primary navigation">
           <button
             className={styles["nav-toggle"]}

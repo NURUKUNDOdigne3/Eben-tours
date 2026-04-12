@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Check,
   CheckCircle,
+  Hotel,
   Info,
   InfoIcon,
   Mail,
@@ -13,6 +14,7 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  UtensilsCrossed,
   Users2,
   X,
   XCircle,
@@ -30,6 +32,8 @@ type ItineraryItem = {
   time: string;
   activity: string;
   description: string;
+  hotel: string;
+  meal: string;
 };
 
 type PackageDetailsRow = {
@@ -274,8 +278,9 @@ export default function PackageDetails() {
       setPhone("");
       setTravellers(2);
       setTravelDate("");
-    } catch (err: any) {
-      toast.error(String(err?.message || "Booking failed"));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Booking failed";
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -623,6 +628,46 @@ export default function PackageDetails() {
                         >
                           {item.description || ""}
                         </p>
+                        {item.hotel || item.meal ? (
+                          <div
+                            style={{
+                              display: "grid",
+                              gap: "10px",
+                              marginTop: "16px",
+                            }}
+                          >
+                            {item.hotel ? (
+                              <p
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  margin: 0,
+                                  // color: "var(--color-secondary)",
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                <Hotel size={18} />
+                                <strong>Hotel:</strong> {item.hotel}
+                              </p>
+                            ) : null}
+                            {item.meal ? (
+                              <p
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                  margin: 0,
+                                  color: "var(--color-secondary)",
+                                  lineHeight: 1.6,
+                                }}
+                              >
+                                <UtensilsCrossed size={18} />
+                                <strong>Meal:</strong> {item.meal}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   ))
@@ -643,7 +688,7 @@ export default function PackageDetails() {
                     color: "var(--color-secondary)",
                   }}
                 >
-                  What's Included
+                  What&apos;s Included
                 </h2>
                 {pkg.inclusions.length ? (
                   <div
@@ -705,7 +750,7 @@ export default function PackageDetails() {
                     color: "var(--color-secondary)",
                   }}
                 >
-                  What's Not Included
+                  What&apos;s Not Included
                 </h2>
                 {pkg.exclusions.length ? (
                   <div

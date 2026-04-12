@@ -35,6 +35,8 @@ type ItineraryItem = {
   time: string;
   activity: string;
   description: string;
+  hotel: string;
+  meal: string;
 };
 
 function coerceStringArray(v: unknown): string[] {
@@ -45,12 +47,18 @@ function coerceStringArray(v: unknown): string[] {
 function coerceItinerary(v: unknown): ItineraryItem[] {
   if (!Array.isArray(v)) return [];
   return v
-    .map((x: any) => ({
-      time: String(x?.time ?? "").trim(),
-      activity: String(x?.activity ?? "").trim(),
-      description: String(x?.description ?? "").trim(),
-    }))
-    .filter((x) => x.time || x.activity || x.description);
+    .map((x) => {
+      const item = typeof x === "object" && x !== null ? x : {};
+      const data = item as Record<string, unknown>;
+      return {
+        time: String(data.time ?? "").trim(),
+        activity: String(data.activity ?? "").trim(),
+        description: String(data.description ?? "").trim(),
+        hotel: String(data.hotel ?? "").trim(),
+        meal: String(data.meal ?? "").trim(),
+      };
+    })
+    .filter((x) => x.time || x.activity || x.description || x.hotel || x.meal);
 }
 
 function StatusPill({ status }: { status: PackageStatus }) {
@@ -385,9 +393,12 @@ export default function AdminPackagesPage() {
         time,
         href: "/admin/packages",
       });
-    } catch (err: any) {
-      const status = err?.response?.status as number | undefined;
-      const msg = err?.response?.data?.error as string | undefined;
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { status?: number; data?: { error?: string } };
+      };
+      const status = error.response?.status;
+      const msg = error.response?.data?.error;
       if (status) {
         setToast(msg || "Disable failed");
         window.setTimeout(() => setToast(null), 2600);
@@ -701,7 +712,13 @@ export default function AdminPackagesPage() {
                 onClick={() =>
                   setDraftItinerary((prev) => [
                     ...prev,
-                    { time: "", activity: "", description: "" },
+                    {
+                      time: "",
+                      activity: "",
+                      description: "",
+                      hotel: "",
+                      meal: "",
+                    },
                   ])
                 }
                 className="rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-secondary)] hover:bg-emerald-50"
@@ -792,6 +809,43 @@ export default function AdminPackagesPage() {
                         className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
                       />
                     </label>
+
+                    <div className="mt-3 grid grid-cols-1! gap-3! sm:grid-cols-2">
+                      <label className="grid grid-cols-1! gap-1!">
+                        <span className="text-xs font-extrabold text-[var(--muted)]">
+                          Hotel
+                        </span>
+                        <input
+                          value={item.hotel}
+                          onChange={(e) =>
+                            setDraftItinerary((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, hotel: e.target.value } : x
+                              )
+                            )
+                          }
+                          placeholder="e.g. Five Volcanoes Boutique Hotel"
+                          className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
+                        />
+                      </label>
+                      <label className="grid grid-cols-1! gap-1!">
+                        <span className="text-xs font-extrabold text-[var(--muted)]">
+                          Meal
+                        </span>
+                        <input
+                          value={item.meal}
+                          onChange={(e) =>
+                            setDraftItinerary((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, meal: e.target.value } : x
+                              )
+                            )
+                          }
+                          placeholder="e.g. Breakfast, Lunch & Dinner"
+                          className="w-full rounded-xl border border-emerald-900/10 bg-white px-3 py-2 text-sm font-semibold text-[var(--color-secondary)]"
+                        />
+                      </label>
+                    </div>
                   </div>
                 ))
               ) : (
