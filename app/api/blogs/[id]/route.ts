@@ -45,7 +45,7 @@ export async function GET(
       readTime: p.readTime,
       imageUrl: p.imageUrl,
       excerpt: excerptFromParagraphs(paragraphs),
-      content: paragraphs,
+      content: p.content,
       updatedAt: p.updatedAt.toISOString().slice(0, 10),
     },
   });

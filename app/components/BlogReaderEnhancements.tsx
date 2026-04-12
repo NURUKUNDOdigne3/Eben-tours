@@ -20,12 +20,6 @@ export default function BlogReaderEnhancements({
   const [progress, setProgress] = useState(0);
   const [copied, setCopied] = useState<null | "copied" | "failed">(null);
 
-  const estimatedReadingTime = useMemo(() => {
-    const words = content.join(" ").trim().split(/\s+/).filter(Boolean).length;
-    const minutes = Math.max(1, Math.round(words / 200));
-    return `${minutes} min read`;
-  }, [content]);
-
   useEffect(() => {
     const onScroll = () => {
       const doc = document.documentElement;

@@ -8,15 +8,27 @@ function coerceStringArray(v: unknown): string[] {
 
 function coerceItinerary(
   v: unknown
-): Array<{ time: string; activity: string; description: string }> {
+): Array<{
+  time: string;
+  activity: string;
+  description: string;
+  hotel: string;
+  meal: string;
+}> {
   if (!Array.isArray(v)) return [];
   return v
-    .map((x: any) => ({
-      time: String(x?.time ?? "").trim(),
-      activity: String(x?.activity ?? "").trim(),
-      description: String(x?.description ?? "").trim(),
-    }))
-    .filter((x) => x.time || x.activity || x.description);
+    .map((x) => {
+      const item = typeof x === "object" && x !== null ? x : {};
+      const data = item as Record<string, unknown>;
+      return {
+        time: String(data.time ?? "").trim(),
+        activity: String(data.activity ?? "").trim(),
+        description: String(data.description ?? "").trim(),
+        hotel: String(data.hotel ?? "").trim(),
+        meal: String(data.meal ?? "").trim(),
+      };
+    })
+    .filter((x) => x.time || x.activity || x.description || x.hotel || x.meal);
 }
 
 export async function GET(
